@@ -15,7 +15,7 @@
 
 [07-黏猴手機遊戲](https://spowerfengai.github.io/07-黏猴手機遊戲/
 
-[08-水暖工](https://spowerfengai.github.io/08-水暖工/
+[08-水管工](https://spowerfengai.github.io/08-水管工/
 
 [09-黃金礦工](https://spowerfengai.github.io/09-黃金礦工/
 
