@@ -6,3 +6,17 @@
 [02-斯瓦特戰爭殭屍](https://spowerfengai.github.io/02-斯瓦特大战僵尸/
 
 [03-坦克大戰](https://spowerfengai.github.io/03-坦克大战/
+
+[04-木乃伊糖果](https://spowerfengai.github.io/04-木乃伊糖果/
+
+[05-記憶萬聖節](https://spowerfengai.github.io/05-記憶萬聖節/
+
+[06-消滅殭屍](https://spowerfengai.github.io/06-消滅殭屍/
+
+[07-黏猴手機遊戲](https://spowerfengai.github.io/07-黏猴手機遊戲/
+
+[08-水暖工](https://spowerfengai.github.io/08-水暖工/
+
+[09-黃金礦工](https://spowerfengai.github.io/09-黃金礦工/
+
+[10-逃亡](https://spowerfengai.github.io/10-逃亡/
