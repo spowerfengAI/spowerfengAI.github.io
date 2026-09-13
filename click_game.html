@@ -2396,4 +2396,134 @@ window.onload=init;
   from{transform:scale(1)}
   to{transform:scale(1.06)}
 }
+
+/* ═════════════════ MOBILE SAFE AREA / RESPONSIVE V20 ═════════════════ */
+*,*::before,*::after{box-sizing:border-box}
+html,body{
+  width:100%;
+  min-width:0;
+  overflow-x:hidden;
+}
+body{
+  min-height:100dvh;
+  padding:
+    max(10px, env(safe-area-inset-top))
+    max(8px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom))
+    max(8px, env(safe-area-inset-left));
+}
+.container{
+  width:min(100%, 560px);
+  max-width:560px;
+  margin:0 auto;
+  min-width:0;
+  overflow:hidden;
+}
+.game-board-wrapper{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+}
+.game-board{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  aspect-ratio:1/1;
+  gap:clamp(3px,1.2vw,6px);
+}
+.cell{
+  min-width:0;
+  width:100%;
+  aspect-ratio:1/1;
+  padding:0;
+}
+.cell span{
+  font-size:clamp(1.05rem,6vw,2.2rem);
+}
+.stat-row,.power-row,.btn-row{
+  width:100%;
+  min-width:0;
+}
+.stat-row{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.stat-card{
+  min-width:0;
+  overflow:hidden;
+}
+.power-row{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:7px !important;
+}
+.power-btn{
+  min-width:0;
+  width:100%;
+  padding:10px 5px;
+  overflow:hidden;
+  white-space:nowrap;
+}
+.power-btn small{
+  white-space:normal;
+}
+.btn-row{
+  display:flex;
+  gap:8px;
+}
+.btn-row > *{min-width:0}
+.btn-hint{
+  flex:0 0 76px;
+  padding-left:10px;
+  padding-right:10px;
+}
+.btn-reset{
+  flex:1 1 auto;
+}
+.challenge-panel,.streak-wrap,.energy-bar-container{
+  width:100%;
+  min-width:0;
+}
+.challenge-title,.challenge-progress{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.title-wrap h1{
+  font-size:clamp(1.6rem,8vw,3rem);
+  letter-spacing:clamp(2px,1.5vw,7px);
+}
+.score-val{
+  font-size:clamp(2rem,11vw,4.8rem);
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.multiplier-bar{max-width:100%}
+
+/* Meteor effects stay inside the viewport on mobile. */
+.m18-meteor,.ms-meteor,.meteor-comet{
+  max-width:90vw;
+}
+.m18-title,.ms-title,.meteor-text{
+  max-width:92vw;
+  text-align:center;
+}
+@media (max-width:430px){
+  body{padding-left:6px;padding-right:6px}
+  .container{
+    border-radius:22px;
+    padding-left:12px !important;
+    padding-right:12px !important;
+  }
+  .stat-row{gap:6px}
+  .stat-card{padding-left:6px!important;padding-right:6px!important}
+  .power-row{gap:5px!important}
+  .power-btn{font-size:.72rem;padding:9px 3px}
+  .power-btn small{font-size:.52rem}
+  .game-board-wrapper{padding:6px!important}
+}
+
 </style>
