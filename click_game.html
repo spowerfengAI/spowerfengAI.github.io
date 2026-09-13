@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>點我+1</title>
+<title>點我+1｜6×6 連鎖版</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
 :root {
@@ -105,17 +105,18 @@ h1 {
   background: radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.15) 0%, transparent 70%);
 }
 .game-board {
-  display:grid; grid-template-columns:repeat(5,1fr); gap:7px;
+  display:grid; grid-template-columns:repeat(6,1fr); gap:6px;
   aspect-ratio:1/1; width:100%;
 }
 /* Cells */
 .cell {
-  position:relative; border-radius:14px;
+  position:relative; border-radius:13px;
   display:flex; justify-content:center; align-items:center;
   font-size:clamp(1.4rem,4.5vw,1.9rem); font-weight:900;
   cursor:pointer; user-select:none;
   transition: transform 0.12s, box-shadow 0.2s;
   overflow:hidden;
+   width:100%; aspect-ratio:1/1; min-width:0; min-height:0;
 }
 .cell::before {
   content:''; position:absolute; inset:0; border-radius:14px;
@@ -191,6 +192,60 @@ h1 {
   0%{box-shadow:0 0 0 3px rgba(251,191,36,0.4), 0 0 20px rgba(251,191,36,0.3)}
   100%{box-shadow:0 0 0 5px rgba(251,191,36,0.8), 0 0 35px rgba(251,191,36,0.6)}
 }
+.boss-cell { animation: bossPulse 1s ease-in-out infinite; }
+@keyframes bossPulse { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.35)} }
+
+
+.cell.near-match { animation: nearPulse .7s ease-in-out infinite alternate; }
+@keyframes nearPulse { from{filter:brightness(1)} to{filter:brightness(1.28)} }
+
+
+
+.cell.chain-explode{animation:chainExplode .42s ease-out forwards!important;z-index:80}
+@keyframes chainExplode{
+  0%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.28);filter:brightness(2)}
+  100%{transform:scale(.08);opacity:0}
+}
+.cell.special-bomb span::before{content:'💣';font-size:1.15em}
+.cell.special-star{background:linear-gradient(135deg,#fff7ad,#fbbf24 40%,#f59e0b 70%,#78350f)!important;box-shadow:0 0 0 3px rgba(251,191,36,.85),0 0 30px rgba(251,191,36,.75)!important;animation:specialStar .8s ease-in-out infinite}
+.cell.special-star span::before{content:'⚡';font-size:1.15em}
+.cell.special-rainbow{background:conic-gradient(#f43f5e,#fbbf24,#43e97b,#06b6d4,#8b5cf6,#f43f5e)!important;box-shadow:0 0 0 3px rgba(255,255,255,.7),0 0 32px rgba(6,182,212,.8)!important;animation:specialRainbow 1.6s linear infinite}
+.cell.special-rainbow span::before{content:'🌈';font-size:1.08em}
+@keyframes specialBomb{0%,100%{transform:scale(1)}50%{transform:scale(1.08) rotate(-4deg)}}
+@keyframes specialStar{0%,100%{transform:scale(1)}50%{transform:scale(1.12) rotate(8deg)}}
+@keyframes specialRainbow{to{filter:hue-rotate(360deg)}}
+
+/* Gameplay upgrades */
+.challenge-panel {
+  width:100%; margin:0 0 12px; padding:10px 12px;
+  border:1px solid rgba(251,191,36,.18); border-radius:16px;
+  background:linear-gradient(135deg,rgba(251,191,36,.09),rgba(139,92,246,.08));
+}
+.challenge-top { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.challenge-title { font-size:.68rem; font-weight:900; color:rgba(255,255,255,.55); letter-spacing:1px; }
+.challenge-progress { font-size:.72rem; font-weight:900; color:#fbbf24; }
+.challenge-track { height:6px; margin-top:7px; background:rgba(255,255,255,.08); border-radius:10px; overflow:hidden; }
+.challenge-fill { height:100%; width:0%; background:linear-gradient(90deg,#fbbf24,#fb7185); border-radius:10px; transition:width .35s ease; }
+
+.power-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; margin-bottom:12px; }
+.power-btn {
+  border:1px solid rgba(255,255,255,.1); border-radius:15px; padding:10px 8px;
+  background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+  color:#fff; font-family:var(--font); font-weight:900; cursor:pointer;
+  box-shadow:0 5px 16px rgba(0,0,0,.2); transition:.15s;
+}
+.power-btn:hover { transform:translateY(-2px); border-color:rgba(251,191,36,.35); }
+.power-btn:active { transform:translateY(2px); }
+.power-btn:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+.power-btn small { display:block; margin-top:2px; color:rgba(255,255,255,.45); font-size:.58rem; }
+.double-active { border-color:rgba(251,191,36,.8); box-shadow:0 0 18px rgba(251,191,36,.25); }
+
+.streak-wrap { display:flex; align-items:center; gap:7px; margin:-3px 0 9px; width:100%; }
+.streak-label { font-size:.62rem; color:rgba(255,255,255,.4); font-weight:900; }
+.streak-timer { flex:1; height:5px; background:rgba(255,255,255,.07); border-radius:10px; overflow:hidden; }
+.streak-fill { height:100%; width:100%; background:linear-gradient(90deg,#06b6d4,#8b5cf6,#f43f5e); transform-origin:left; transition:width .1s linear; }
+
 /* Modal */
 .modal {
   position:fixed; inset:0; background:rgba(5,0,20,0.92);
@@ -234,7 +289,1169 @@ h1 {
 .multiplier-val { font-size:1.1rem; font-weight:900; color:#fbbf24; text-shadow:0 0 15px rgba(251,191,36,0.6); transition:all 0.3s; }
 .multiplier-bar { flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; }
 .multiplier-fill { height:100%; background:linear-gradient(90deg,#fbbf24,#f59e0b); border-radius:10px; transition:width 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+
+.queued-click{outline:3px solid #fbbf24!important;box-shadow:0 0 18px rgba(251,191,36,.9)!important;animation:queuePulse .45s ease-in-out infinite alternate}
+@keyframes queuePulse{from{transform:scale(.96)}to{transform:scale(1.04)}}
+
+/* ═════════════════ MAGIC FANTASY THEME ═════════════════ */
+:root{
+  --bg1:#07031a; --bg2:#12052b; --accent:#c084fc; --gold:#f5d76e;
+  --purple:#8b5cf6; --cyan:#67e8f9; --font:'Nunito','PingFang TC','Microsoft JhengHei',sans-serif;
+}
+body{
+  background:
+    radial-gradient(circle at 50% 10%,rgba(139,92,246,.22),transparent 34%),
+    radial-gradient(circle at 20% 80%,rgba(34,211,238,.10),transparent 28%),
+    linear-gradient(160deg,#10052b 0%,#07031a 55%,#02010a 100%);
+}
+.container{
+  background:
+    linear-gradient(155deg,rgba(255,255,255,.09),rgba(139,92,246,.055)),
+    radial-gradient(circle at 50% 0%,rgba(192,132,252,.14),transparent 55%);
+  border:1px solid rgba(216,180,254,.22);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.05),
+    0 30px 90px rgba(0,0,0,.72),
+    0 0 70px rgba(124,58,237,.16),
+    inset 0 1px 0 rgba(255,255,255,.16);
+}
+.title-wrap{position:relative}
+.title-icon{filter:drop-shadow(0 0 9px rgba(216,180,254,.8))}
+h1{
+  background:linear-gradient(135deg,#e9d5ff 0%,#c084fc 34%,#67e8f9 68%,#fde68a 100%);
+  filter:drop-shadow(0 0 16px rgba(192,132,252,.62));
+  letter-spacing:5px;
+}
+.stat-card{
+  background:linear-gradient(145deg,rgba(124,58,237,.12),rgba(255,255,255,.035));
+  border-color:rgba(216,180,254,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+}
+.stat-card.hot{background:linear-gradient(145deg,rgba(192,132,252,.18),rgba(67,56,202,.08));border-color:rgba(216,180,254,.28)}
+.score-val{
+  color:#f5f3ff;
+  text-shadow:0 0 36px rgba(167,139,250,.66),0 0 8px rgba(103,232,249,.18);
+}
+.multiplier-val{color:#e9d5ff;text-shadow:0 0 18px rgba(192,132,252,.7)}
+.multiplier-fill{background:linear-gradient(90deg,#7c3aed,#c084fc,#67e8f9)}
+.multiplier-bar{background:rgba(216,180,254,.08)}
+.energy-bar-container .energy-text span:first-child{color:#c4b5fd}
+.pip.active{
+  background:linear-gradient(90deg,#7c3aed,#c084fc,#67e8f9);
+  box-shadow:0 0 12px rgba(192,132,252,.65);
+}
+.game-board-wrapper{
+  background:
+    radial-gradient(circle at 50% 45%,rgba(124,58,237,.11),transparent 58%),
+    linear-gradient(145deg,#12052d,#050211);
+  border-color:rgba(192,132,252,.34);
+  box-shadow:0 0 0 1px rgba(139,92,246,.12),0 20px 48px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,255,255,.08),0 0 42px rgba(139,92,246,.10);
+}
+.board-glow{background:radial-gradient(ellipse at 50% 0%,rgba(192,132,252,.20),transparent 68%)}
+.level-badge{
+  background:linear-gradient(135deg,#f5d76e,#eab308);
+  color:#2e1065;
+  box-shadow:0 4px 16px rgba(245,215,110,.45),0 0 18px rgba(245,215,110,.18);
+}
+.cell{
+  border:1px solid rgba(255,255,255,.08);
+  background-blend-mode:screen;
+  box-shadow:0 4px 15px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.22);
+}
+.cell span{text-shadow:0 2px 10px rgba(0,0,0,.68),0 0 8px rgba(255,255,255,.08)}
+.c1{background:linear-gradient(135deg,#7c3aed,#ec4899)}
+.c2{background:linear-gradient(135deg,#2563eb,#22d3ee)}
+.c3{background:linear-gradient(135deg,#059669,#34d399)}
+.c4{background:linear-gradient(135deg,#db2777,#f59e0b)}
+.c5{background:linear-gradient(135deg,#7c3aed,#a78bfa)}
+.c6{background:linear-gradient(135deg,#9333ea,#fb7185)}
+.c7{background:linear-gradient(135deg,#2563eb,#8b5cf6)}
+.c8{background:linear-gradient(135deg,#4338ca,#7c3aed)}
+.c9{background:linear-gradient(135deg,#d97706,#fde047)}
+.c10{background:linear-gradient(135deg,#e11d48,#7c3aed)}
+.challenge-panel{
+  background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(6,182,212,.07));
+  border-color:rgba(192,132,252,.22);
+}
+.challenge-title::before{content:'✧ ';color:#f5d76e}
+.challenge-progress{color:#e9d5ff}
+.challenge-fill{background:linear-gradient(90deg,#7c3aed,#c084fc,#fde68a)}
+.power-btn{
+  background:linear-gradient(145deg,rgba(76,29,149,.26),rgba(15,23,42,.54));
+  border-color:rgba(216,180,254,.17);
+  box-shadow:0 6px 20px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.power-btn:hover{border-color:rgba(216,180,254,.4);box-shadow:0 0 18px rgba(192,132,252,.16),0 6px 20px rgba(0,0,0,.28)}
+.btn-reset{
+  background:linear-gradient(135deg,#7c3aed,#4338ca);
+  box-shadow:0 6px 0 #312e81,0 10px 30px rgba(124,58,237,.44),0 0 18px rgba(192,132,252,.16);
+}
+.btn-hint{background:linear-gradient(135deg,#11102a,#1e1b4b);border-color:rgba(192,132,252,.18)}
+.modal{background:rgba(5,1,18,.94)}
+.modal-card{
+  background:linear-gradient(160deg,rgba(124,58,237,.16),rgba(255,255,255,.04));
+  border-color:rgba(216,180,254,.2);
+  box-shadow:0 30px 90px rgba(0,0,0,.65),0 0 55px rgba(124,58,237,.16),inset 0 1px 0 rgba(255,255,255,.12);
+}
+.modal-btn{
+  background:linear-gradient(135deg,#7c3aed,#c026d3);
+  box-shadow:0 6px 0 #581c87,0 10px 30px rgba(124,58,237,.42);
+}
+.floating-pts{color:#fef3c7;text-shadow:0 0 22px rgba(245,215,110,.95),0 2px 8px rgba(0,0,0,.5)}
+.floating-combo{color:#c4b5fd;text-shadow:0 0 30px rgba(192,132,252,.92)}
+
+.game-board-wrapper::before{
+  content:'✦  ◇  ✧  ◇  ✦';
+  position:absolute;left:50%;top:3px;transform:translateX(-50%);
+  color:rgba(216,180,254,.13);font-size:.62rem;letter-spacing:9px;pointer-events:none;z-index:3;
+}
+
 </style>
+
+<style id="military-arcade-skin">
+:root{
+  --army-green:#536b32; --olive:#778b42; --sand:#d6c58a; --steel:#8d9a9e;
+}
+body{
+  background:
+    radial-gradient(circle at 50% 15%,rgba(126,150,78,.22),transparent 35%),
+    linear-gradient(rgba(35,45,22,.22) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(35,45,22,.18) 1px,transparent 1px),
+    #1b2118 !important;
+  background-size:auto,24px 24px,24px 24px,auto !important;
+}
+#main-container{
+  border:3px solid #697653 !important;
+  border-radius:10px !important;
+  background:linear-gradient(145deg,#2b3327,#171c16 72%) !important;
+  box-shadow:0 0 0 5px #11150f,0 18px 50px rgba(0,0,0,.65) !important;
+}
+.game-title,.title{
+  color:#d8cf98 !important;
+  text-shadow:3px 3px 0 #202617,0 0 12px rgba(197,182,89,.25) !important;
+  letter-spacing:.12em !important;
+}
+.game-subtitle,.subtitle{
+  color:#9ca77b !important;
+}
+.game-board-wrapper{
+  border-color:#6c7958 !important;
+  background:#141912 !important;
+  box-shadow:inset 0 0 0 3px #252d20,0 0 30px rgba(0,0,0,.55) !important;
+}
+.game-board{
+  background:#11160f !important;
+  border:2px solid #657052 !important;
+  gap:5px !important;
+}
+.cell{
+  border:2px solid rgba(210,203,151,.25) !important;
+  border-radius:5px !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 -7px 10px rgba(0,0,0,.22) !important;
+  font-family:Impact,Haettenschweiler,"Arial Black",sans-serif !important;
+  text-shadow:2px 2px 0 rgba(0,0,0,.75) !important;
+}
+.cell:hover{
+  filter:brightness(1.2) saturate(.85) !important;
+  transform:translateY(-2px) !important;
+}
+.power-btn,.btn{
+  border:2px solid #71805b !important;
+  border-radius:5px !important;
+  background:linear-gradient(#596846,#303a29) !important;
+  color:#eee5b2 !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.14),0 3px 0 #10140e !important;
+  text-transform:uppercase;
+}
+.power-btn:active,.btn:active{transform:translateY(2px) !important;box-shadow:inset 0 1px rgba(255,255,255,.08),0 1px 0 #10140e !important}
+.energy-bar-container,.streak-wrap,.challenge-wrap,.stats-panel{
+  border-color:#5e6c4e !important;
+  background:rgba(24,30,20,.88) !important;
+}
+.energy-text,.streak-label{color:#c9c58c !important}
+.level-badge{
+  background:#303b26 !important;
+  border:2px solid #a5a36f !important;
+  color:#efe5a7 !important;
+  border-radius:4px !important;
+}
+#score,.score{
+  color:#f0dc79 !important;
+  font-family:Impact,Haettenschweiler,"Arial Black",sans-serif !important;
+}
+.modal-card{
+  border:3px solid #75835e !important;
+  background:#20271c !important;
+}
+.cell::after{
+  content:"";
+  position:absolute; inset:0;
+  pointer-events:none;
+  border-radius:4px;
+  background:linear-gradient(120deg,rgba(255,255,255,.10),transparent 35%,rgba(0,0,0,.10));
+}
+</style>
+
+<style>
+@keyframes militaryHit{
+  0%{filter:brightness(1)}
+  35%{filter:brightness(1.65) saturate(.75)}
+  100%{filter:brightness(1)}
+}
+.cell.target-pulse,.cell.idle-bounce{animation:militaryHit .22s ease-out !important}
+
+/* ═══════ ARCANE BACKPLATE V2 ═══════ */
+body::before{
+  content:'';
+  position:fixed;
+  inset:-20%;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 18% 22%,rgba(167,139,250,.16),transparent 23%),
+    radial-gradient(circle at 82% 18%,rgba(34,211,238,.12),transparent 22%),
+    radial-gradient(circle at 72% 78%,rgba(217,70,239,.13),transparent 25%),
+    radial-gradient(circle at 25% 82%,rgba(59,130,246,.10),transparent 24%);
+  filter:blur(10px);
+  animation:arcaneDrift 14s ease-in-out infinite alternate;
+  z-index:-1;
+}
+@keyframes arcaneDrift{
+  from{transform:scale(1) rotate(0deg)}
+  to{transform:scale(1.08) rotate(2deg)}
+}
+.game-board-wrapper{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  background:
+    radial-gradient(circle at 50% 45%,rgba(192,132,252,.18),transparent 35%),
+    radial-gradient(circle at 20% 85%,rgba(34,211,238,.11),transparent 32%),
+    radial-gradient(circle at 85% 15%,rgba(236,72,153,.10),transparent 30%),
+    linear-gradient(145deg,#1b0b3a 0%,#10052b 38%,#050316 100%);
+  border:1px solid rgba(216,180,254,.38);
+  box-shadow:
+    0 0 0 1px rgba(103,232,249,.06),
+    0 24px 65px rgba(0,0,0,.68),
+    0 0 80px rgba(139,92,246,.20),
+    inset 0 0 45px rgba(124,58,237,.12),
+    inset 0 1px 0 rgba(255,255,255,.14);
+}
+.game-board-wrapper::after{
+  content:'✦   ◇   ✧   ◇   ✦   ◇   ✧   ◇   ✦';
+  position:absolute;
+  left:50%;
+  bottom:7px;
+  transform:translateX(-50%);
+  width:100%;
+  text-align:center;
+  color:rgba(216,180,254,.13);
+  font-size:.55rem;
+  letter-spacing:6px;
+  pointer-events:none;
+  z-index:1;
+}
+.game-board-wrapper .game-board{
+  position:relative;
+  z-index:2;
+  background:
+    linear-gradient(rgba(124,58,237,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(124,58,237,.045) 1px,transparent 1px),
+    radial-gradient(circle at 50% 50%,rgba(192,132,252,.075),transparent 68%);
+  background-size:24px 24px,24px 24px,100% 100%;
+  border:1px solid rgba(192,132,252,.16);
+  box-shadow:
+    inset 0 0 35px rgba(76,29,149,.18),
+    inset 0 1px 0 rgba(255,255,255,.05);
+}
+.game-board::before{
+  content:'';
+  position:absolute;
+  inset:7px;
+  pointer-events:none;
+  border:1px solid rgba(245,215,110,.09);
+  border-radius:14px;
+  box-shadow:0 0 24px rgba(192,132,252,.08),inset 0 0 24px rgba(124,58,237,.08);
+}
+.board-glow{
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(216,180,254,.25),transparent 55%),
+    radial-gradient(ellipse at 50% 100%,rgba(34,211,238,.10),transparent 52%);
+  opacity:.9;
+}
+.cell{
+  background-blend-mode:screen;
+  border-color:rgba(255,255,255,.12);
+  box-shadow:
+    0 4px 14px rgba(0,0,0,.30),
+    0 0 9px rgba(192,132,252,.08),
+    inset 0 1px 0 rgba(255,255,255,.25);
+  transition:transform .12s ease,filter .12s ease,box-shadow .12s ease;
+}
+.cell:hover{
+  filter:brightness(1.12) saturate(1.08);
+  box-shadow:
+    0 5px 18px rgba(0,0,0,.32),
+    0 0 15px rgba(192,132,252,.18),
+    inset 0 1px 0 rgba(255,255,255,.28);
+}
+
+</style>
+<style id="stable-meteor-css">
+/* ☄️ STABLE METEOR SPELL */
+#meteor-spell-stable{position:fixed;inset:0;width:100vw;height:100vh;display:none;pointer-events:none;z-index:2147483647;overflow:hidden}
+#meteor-spell-stable.active{display:block}
+.ms-meteor{
+  position:fixed;left:50%;top:-180px;width:86px;height:150px;
+  opacity:0;border-radius:50%;
+  background:radial-gradient(circle at 50% 18%,#fff 0 7%,#ffe89a 16%,#ffb000 38%,#ff6818 62%,#c62828 82%,#54208a 100%);
+  box-shadow:0 0 20px #fff,0 0 45px #ffe680,0 0 88px #ff7a18,0 0 140px rgba(168,85,247,.92);
+  transform:translate(-50%,-50%) rotate(35deg) scale(.48);
+  will-change:left,top,transform,opacity
+}
+.ms-meteor:before{
+  content:'';position:absolute;left:50%;bottom:66%;width:180px;height:520px;
+  transform:translateX(-50%);border-radius:50%;
+  background:linear-gradient(to top,rgba(255,255,255,.2),rgba(255,220,130,.55),rgba(255,126,42,.35),rgba(168,85,247,.15),transparent);
+  filter:blur(13px)
+}
+.ms-meteor:after{
+  content:'✦';position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);
+  color:#fff;font-size:34px;text-shadow:0 0 15px #fff,0 0 34px #ffe680,0 0 64px #ff7a18
+}
+.ms-glow{
+  position:fixed;left:50%;top:50%;width:18vmin;height:18vmin;transform:translate(-50%,-50%) scale(.3);
+  border-radius:50%;opacity:0;
+  background:radial-gradient(circle,rgba(255,238,150,.18),rgba(192,132,252,.12),transparent 70%);
+  filter:blur(4px)
+}
+.ms-flash{position:fixed;inset:0;opacity:0;background:radial-gradient(circle at 50% 50%,#fff 0 4%,rgba(255,225,125,.82) 10%,rgba(255,113,30,.42) 20%,rgba(168,85,247,.18) 38%,transparent 66%)}
+.ms-ring{
+  position:fixed;left:50%;top:50%;width:24px;height:24px;border:6px solid rgba(255,255,255,.92);
+  border-radius:50%;opacity:0;transform:translate(-50%,-50%) scale(.1);
+  box-shadow:0 0 30px #fff,0 0 70px #ffe680,0 0 120px #a855f7
+}
+.ms-title{
+  position:fixed;left:50%;top:68%;transform:translate(-50%,-50%) scale(.72);
+  opacity:0;color:#fff7ed;font-size:clamp(24px,5vw,48px);font-weight:1000;letter-spacing:8px;
+  text-shadow:0 0 8px #fff,0 0 22px #ff7a18,0 0 45px #a855f7
+}
+</style>
+
+<style id="title-fix">
+.title-wrap{position:relative;z-index:20;margin-bottom:22px}
+.title-wrap .title-icon,
+.title-wrap h1{position:relative;z-index:21}
+
+/* ═══════════════════════════════════════════════
+   點我+1 · ARCANE FANTASY BEAUTY PASS
+   ═══════════════════════════════════════════════ */
+html{background:#03020c}
+body{
+  color:#f5f3ff;
+  overflow-x:hidden;
+  background:
+    radial-gradient(ellipse at 50% -10%,rgba(168,85,247,.28),transparent 42%),
+    radial-gradient(circle at 8% 38%,rgba(59,130,246,.14),transparent 28%),
+    radial-gradient(circle at 92% 62%,rgba(217,70,239,.14),transparent 28%),
+    linear-gradient(180deg,#10052a 0%,#070316 48%,#02010a 100%);
+}
+body::after{
+  content:'✦  ·  ✧  ·  ◇  ·  ✦  ·  ✧  ·  ◇  ·  ✦';
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;color:rgba(216,180,254,.045);font-size:20px;
+  letter-spacing:22px;transform:rotate(-18deg);z-index:-1;
+}
+.container{
+  position:relative;
+  border-radius:28px;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.075),rgba(124,58,237,.045) 38%,rgba(3,2,12,.72)),
+    radial-gradient(circle at 50% 0%,rgba(192,132,252,.12),transparent 48%);
+  border:1px solid rgba(216,180,254,.24);
+  box-shadow:
+    0 30px 100px rgba(0,0,0,.72),
+    0 0 0 1px rgba(103,232,249,.035),
+    0 0 70px rgba(139,92,246,.15),
+    inset 0 1px 0 rgba(255,255,255,.13);
+}
+.container::before{
+  content:'';
+  position:absolute;inset:1px;border-radius:27px;pointer-events:none;
+  background:linear-gradient(120deg,rgba(255,255,255,.10),transparent 22%,transparent 76%,rgba(192,132,252,.08));
+}
+.title-wrap{position:relative;z-index:30;margin-bottom:25px}
+.title-wrap h1{
+  position:relative;z-index:31;
+  font-weight:1000;
+  letter-spacing:7px;
+  background:linear-gradient(90deg,#f5d0fe,#c4b5fd 35%,#67e8f9 67%,#fde68a);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:none;
+  filter:drop-shadow(0 0 10px rgba(192,132,252,.55));
+}
+.title-wrap .title-icon{position:relative;z-index:31;filter:drop-shadow(0 0 12px rgba(245,215,110,.8))}
+.stat-card{
+  border-radius:18px;
+  background:linear-gradient(145deg,rgba(124,58,237,.13),rgba(255,255,255,.035));
+  border:1px solid rgba(216,180,254,.13);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 10px 24px rgba(0,0,0,.16);
+  backdrop-filter:blur(12px);
+}
+.stat-card.hot{
+  background:linear-gradient(145deg,rgba(168,85,247,.19),rgba(49,46,129,.08));
+  border-color:rgba(216,180,254,.27);
+  box-shadow:0 0 24px rgba(168,85,247,.10),inset 0 1px 0 rgba(255,255,255,.09);
+}
+.score-val{
+  color:#faf5ff;
+  text-shadow:0 0 22px rgba(192,132,252,.55),0 0 5px rgba(103,232,249,.22);
+}
+.multiplier-val{
+  color:#e9d5ff;
+  text-shadow:0 0 20px rgba(192,132,252,.7);
+}
+.multiplier-bar{
+  background:linear-gradient(90deg,rgba(255,255,255,.055),rgba(139,92,246,.08));
+  border:1px solid rgba(216,180,254,.08);
+}
+.multiplier-fill{
+  background:linear-gradient(90deg,#6d28d9,#a855f7,#22d3ee,#fde68a);
+  box-shadow:0 0 12px rgba(168,85,247,.5);
+}
+.energy-bar-container{
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(124,58,237,.07));
+  border:1px solid rgba(216,180,254,.11);
+  border-radius:15px;
+}
+.pip.active{
+  background:linear-gradient(180deg,#f5d0fe,#a855f7,#6366f1);
+  box-shadow:0 0 12px rgba(168,85,247,.65),0 0 3px #fff;
+}
+.game-board-wrapper{
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 50% 42%,rgba(168,85,247,.17),transparent 38%),
+    radial-gradient(circle at 12% 90%,rgba(34,211,238,.10),transparent 30%),
+    radial-gradient(circle at 88% 10%,rgba(244,114,182,.09),transparent 28%),
+    linear-gradient(145deg,#1b0b3b,#0c0420 45%,#03020d);
+  border:1px solid rgba(216,180,254,.34);
+  box-shadow:
+    0 0 0 1px rgba(103,232,249,.05),
+    0 24px 65px rgba(0,0,0,.62),
+    0 0 70px rgba(139,92,246,.20),
+    inset 0 0 50px rgba(76,29,149,.16),
+    inset 0 1px 0 rgba(255,255,255,.13);
+}
+.game-board-wrapper::before{
+  content:'✦';
+  position:absolute;left:12px;top:8px;color:rgba(245,215,110,.35);
+  font-size:12px;z-index:4;pointer-events:none;
+  text-shadow:0 0 12px rgba(245,215,110,.7);
+}
+.game-board-wrapper::after{
+  content:'◇  ✧  ◇  ✦  ◇  ✧  ◇';
+  bottom:8px;letter-spacing:7px;color:rgba(216,180,254,.12);
+}
+.game-board{
+  border-radius:18px;
+  background:
+    linear-gradient(rgba(192,132,252,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(192,132,252,.045) 1px,transparent 1px),
+    radial-gradient(circle at center,rgba(192,132,252,.08),transparent 68%);
+  background-size:26px 26px,26px 26px,100% 100%;
+}
+.game-board::before{
+  border:1px solid rgba(245,215,110,.10);
+  box-shadow:0 0 30px rgba(192,132,252,.10),inset 0 0 30px rgba(124,58,237,.10);
+}
+.cell{
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:
+    0 5px 15px rgba(0,0,0,.32),
+    0 0 12px rgba(168,85,247,.08),
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -8px 18px rgba(0,0,0,.08);
+}
+.cell span{
+  font-weight:1000;
+  text-shadow:0 2px 8px rgba(0,0,0,.65),0 0 8px rgba(255,255,255,.18);
+}
+.c1{background:linear-gradient(145deg,#8b5cf6,#db2777)}
+.c2{background:linear-gradient(145deg,#2563eb,#06b6d4)}
+.c3{background:linear-gradient(145deg,#059669,#2dd4bf)}
+.c4{background:linear-gradient(145deg,#db2777,#f59e0b)}
+.c5{background:linear-gradient(145deg,#7c3aed,#c084fc)}
+.c6{background:linear-gradient(145deg,#9333ea,#f43f5e)}
+.c7{background:linear-gradient(145deg,#4f46e5,#38bdf8)}
+.c8{background:linear-gradient(145deg,#4338ca,#a855f7)}
+.c9{background:linear-gradient(145deg,#d97706,#fde047)}
+.c10{background:linear-gradient(145deg,#e11d48,#7c3aed)}
+.challenge-panel{
+  border-radius:18px;
+  background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(6,182,212,.055));
+  border:1px solid rgba(216,180,254,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 12px 30px rgba(0,0,0,.15);
+}
+.challenge-fill{background:linear-gradient(90deg,#7c3aed,#c084fc,#22d3ee,#fde68a);box-shadow:0 0 10px rgba(168,85,247,.35)}
+.power-btn{
+  border-radius:15px;
+  background:linear-gradient(145deg,rgba(76,29,149,.24),rgba(15,23,42,.56));
+  border:1px solid rgba(216,180,254,.15);
+  box-shadow:0 8px 20px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.power-btn:hover{
+  transform:translateY(-2px);
+  border-color:rgba(216,180,254,.38);
+  box-shadow:0 10px 25px rgba(0,0,0,.28),0 0 20px rgba(168,85,247,.16);
+}
+.btn-reset{
+  background:linear-gradient(135deg,#7c3aed,#5b21b6);
+  box-shadow:0 5px 0 #312e81,0 10px 28px rgba(124,58,237,.42),0 0 20px rgba(192,132,252,.15);
+}
+.btn-hint{
+  background:linear-gradient(135deg,#11102a,#20164b);
+  border-color:rgba(192,132,252,.20);
+}
+.level-badge{
+  background:linear-gradient(135deg,#f8e38a,#eab308,#c084fc);
+  color:#2e1065;
+  border:1px solid rgba(255,255,255,.35);
+  box-shadow:0 4px 18px rgba(245,215,110,.38),0 0 20px rgba(192,132,252,.16);
+}
+.modal{background:rgba(2,1,10,.82);backdrop-filter:blur(10px)}
+.modal-card{
+  border-radius:24px;
+  background:
+    linear-gradient(150deg,rgba(124,58,237,.19),rgba(255,255,255,.045)),
+    #0b061b;
+  border:1px solid rgba(216,180,254,.25);
+  box-shadow:0 35px 100px rgba(0,0,0,.7),0 0 70px rgba(139,92,246,.18),inset 0 1px 0 rgba(255,255,255,.12);
+}
+.modal-btn{
+  background:linear-gradient(135deg,#7c3aed,#c026d3);
+  box-shadow:0 5px 0 #581c87,0 10px 28px rgba(124,58,237,.4);
+}
+.floating-pts{
+  color:#fef3c7;
+  text-shadow:0 0 24px rgba(245,215,110,.95),0 0 8px rgba(192,132,252,.75),0 2px 8px rgba(0,0,0,.5);
+}
+.floating-combo{
+  color:#e9d5ff;
+  text-shadow:0 0 28px rgba(192,132,252,.95),0 0 8px rgba(103,232,249,.45);
+}
+
+
+/* ═══════ 魔法技能：火球術／隕石術 ═══════ */
+.power-btn#bomb-btn{
+  background:linear-gradient(145deg,rgba(220,38,38,.20),rgba(124,45,18,.18),rgba(15,23,42,.55));
+  border-color:rgba(251,146,60,.22);
+}
+.power-btn#bomb-btn:hover{box-shadow:0 0 24px rgba(249,115,22,.22),0 8px 22px rgba(0,0,0,.3)}
+.power-btn#reroll-btn{
+  background:linear-gradient(145deg,rgba(109,40,217,.24),rgba(30,64,175,.16),rgba(15,23,42,.55));
+  border-color:rgba(192,132,252,.24);
+}
+.power-btn#reroll-btn:hover{box-shadow:0 0 26px rgba(168,85,247,.24),0 8px 22px rgba(0,0,0,.3)}
+.meteor-charge{
+  animation:meteorCharge .28s ease-in-out infinite alternate;
+  filter:brightness(1.35) saturate(1.4);
+}
+@keyframes meteorCharge{
+  from{transform:scale(.96);box-shadow:0 0 8px rgba(192,132,252,.15),inset 0 1px 0 rgba(255,255,255,.2)}
+  to{transform:scale(1.04);box-shadow:0 0 24px rgba(192,132,252,.7),0 0 8px rgba(103,232,249,.35),inset 0 1px 0 rgba(255,255,255,.3)}
+}
+.meteor-impact{
+  animation:meteorImpact .52s cubic-bezier(.2,.9,.2,1) both;
+}
+@keyframes meteorImpact{
+  0%{transform:scale(1);filter:brightness(1)}
+  22%{transform:scale(1.18);filter:brightness(2.6) saturate(1.7);box-shadow:0 0 35px rgba(245,215,110,.95)}
+  100%{transform:scale(.35);opacity:0;filter:brightness(3) blur(2px)}
+}
+.target-pulse{
+  animation:firePulse .42s ease-out both;
+}
+@keyframes firePulse{
+  0%{transform:scale(1);filter:brightness(1)}
+  45%{transform:scale(1.12);filter:brightness(2.2) saturate(1.6);box-shadow:0 0 28px rgba(251,146,60,.85)}
+  100%{transform:scale(.45);opacity:0;filter:brightness(2.8)}
+}
+
+
+/* ═══════════════════════════════════════════════
+   ☄️ METEOR SPELL — CINEMATIC SKILL ANIMATION
+   ═══════════════════════════════════════════════ */
+#meteor-spell-overlay{
+  position:fixed;inset:0;z-index:9999;pointer-events:none;
+  display:none;overflow:hidden;
+  background:rgba(4,1,16,.08);
+}
+#meteor-spell-overlay.active{display:block}
+.meteor-vignette{
+  position:absolute;inset:-10%;
+  background:radial-gradient(circle,transparent 28%,rgba(4,1,16,.78) 100%);
+  opacity:0;
+}
+.meteor-sky{
+  position:absolute;inset:-30%;
+  overflow:hidden;
+  transform:rotate(-8deg);
+}
+.meteor-comet{
+  position:absolute;
+  width:42px;height:190px;
+  top:-250px;right:12%;
+  border-radius:50%;
+  background:linear-gradient(to bottom,transparent 0%,rgba(103,232,249,.35) 25%,#e9d5ff 62%,#fde68a 84%,#fb923c 100%);
+  filter:blur(2px);
+  box-shadow:0 0 24px #c084fc,0 0 55px rgba(103,232,249,.7),0 0 90px rgba(249,115,22,.55);
+  transform:rotate(35deg);
+}
+.meteor-comet::before{
+  content:'';position:absolute;width:110px;height:430px;right:-34px;top:-270px;
+  background:linear-gradient(to bottom,transparent,rgba(192,132,252,.16),rgba(251,146,60,.48),transparent);
+  filter:blur(10px);transform:rotate(-3deg);
+}
+.meteor-rune{
+  position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.5);
+  color:#e9d5ff;font-size:34px;letter-spacing:12px;opacity:0;
+  text-shadow:0 0 12px #c084fc,0 0 35px #7c3aed;
+}
+.meteor-ring{
+  position:absolute;left:50%;top:50%;
+  width:70vmin;height:70vmin;
+  border:2px solid rgba(192,132,252,.7);
+  border-radius:50%;
+  transform:translate(-50%,-50%) scale(.15) rotate(0deg);
+  opacity:0;
+  box-shadow:0 0 25px rgba(192,132,252,.5),inset 0 0 25px rgba(103,232,249,.15);
+}
+.ring-b{
+  width:48vmin;height:48vmin;
+  border-color:rgba(103,232,249,.58);
+  border-style:dashed;
+}
+.meteor-core{
+  position:absolute;left:50%;top:50%;
+  width:30px;height:30px;border-radius:50%;
+  transform:translate(-50%,-50%) scale(.1);
+  opacity:0;
+  background:radial-gradient(circle at 35% 30%,#fff,#fde68a 20%,#fb923c 48%,#dc2626 75%,#581c87);
+  box-shadow:0 0 20px #fff,0 0 55px #fb923c,0 0 110px #c084fc,0 0 170px rgba(124,58,237,.8);
+}
+.meteor-flash{
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 50%,#fff 0%,#fde68a 7%,rgba(251,146,60,.7) 17%,rgba(192,132,252,.25) 35%,transparent 64%);
+  opacity:0;
+}
+.meteor-shockwave{
+  position:absolute;left:50%;top:50%;
+  width:30px;height:30px;border-radius:50%;
+  border:8px solid rgba(255,255,255,.8);
+  transform:translate(-50%,-50%) scale(.1);
+  opacity:0;
+  box-shadow:0 0 30px #fde68a,0 0 70px #c084fc;
+}
+.meteor-embers{
+  position:absolute;inset:0;opacity:0;
+  background-image:
+    radial-gradient(circle,rgba(253,230,138,.95) 0 2px,transparent 3px),
+    radial-gradient(circle,rgba(192,132,252,.9) 0 1px,transparent 3px),
+    radial-gradient(circle,rgba(251,146,60,.85) 0 2px,transparent 4px);
+  background-size:73px 91px,113px 127px,157px 137px;
+  background-position:20px 30px,60px 10px,10px 80px;
+}
+.meteor-text{
+  position:absolute;left:50%;top:68%;
+  transform:translate(-50%,-50%) scale(.72);
+  color:#fff7ed;font-size:clamp(24px,5vw,48px);font-weight:1000;
+  letter-spacing:8px;opacity:0;
+  text-shadow:0 0 8px #fff,0 0 22px #fb923c,0 0 45px #c084fc;
+}
+#meteor-spell-overlay.active .meteor-vignette{animation:meteorVignette 1.55s ease-out both}
+#meteor-spell-overlay.active .meteor-comet{animation:meteorFall .72s cubic-bezier(.7,0,.1,1) .12s both}
+#meteor-spell-overlay.active .meteor-rune{animation:runeAppear .42s ease-out .25s both}
+#meteor-spell-overlay.active .ring-a{animation:ringExpand 1.05s ease-out .34s both}
+#meteor-spell-overlay.active .ring-b{animation:ringExpand 1.0s ease-out .42s both}
+#meteor-spell-overlay.active .meteor-core{animation:coreImpact 1.18s cubic-bezier(.2,.8,.1,1) .52s both}
+#meteor-spell-overlay.active .meteor-flash{animation:impactFlash .48s ease-out .72s both}
+#meteor-spell-overlay.active .meteor-shockwave{animation:shockwave 1s cubic-bezier(.1,.7,.1,1) .76s both}
+#meteor-spell-overlay.active .meteor-embers{animation:embersBurst 1.35s ease-out .72s both}
+#meteor-spell-overlay.active .meteor-text{animation:spellTitle .8s ease-out .92s both}
+
+@keyframes meteorFall{
+  0%{top:-250px;right:12%;opacity:0;transform:rotate(35deg) scale(.55)}
+  12%{opacity:1}
+  100%{top:52%;right:46%;opacity:1;transform:rotate(35deg) scale(1.18)}
+}
+@keyframes runeAppear{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.35) rotate(-25deg)}
+  70%{opacity:1}
+  100%{opacity:.85;transform:translate(-50%,-50%) scale(1.15) rotate(0)}
+}
+@keyframes ringExpand{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.12) rotate(-25deg)}
+  25%{opacity:.9}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.55) rotate(120deg)}
+}
+@keyframes coreImpact{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.1)}
+  42%{opacity:1;transform:translate(-50%,-50%) scale(1.0)}
+  56%{transform:translate(-50%,-50%) scale(4.4)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(16)}
+}
+@keyframes impactFlash{
+  0%{opacity:0}
+  25%{opacity:1}
+  100%{opacity:0}
+}
+@keyframes shockwave{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.1)}
+  18%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(28)}
+}
+@keyframes embersBurst{
+  0%{opacity:0;transform:scale(.8)}
+  22%{opacity:1}
+  100%{opacity:0;transform:scale(1.18)}
+}
+@keyframes spellTitle{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.5);filter:blur(8px)}
+  35%{opacity:1;transform:translate(-50%,-50%) scale(1.12);filter:blur(0)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.25)}
+}
+@keyframes meteorVignette{
+  0%{opacity:0}
+  30%{opacity:.9}
+  100%{opacity:0}
+}
+
+
+.meteor-impact{
+  animation:meteorImpact .52s cubic-bezier(.2,.9,.2,1) both, meteorTileGlow .52s ease-out both;
+}
+@keyframes meteorTileGlow{
+  0%{box-shadow:0 0 0 rgba(255,255,255,0)}
+  35%{box-shadow:0 0 35px rgba(253,230,138,.95),0 0 18px rgba(192,132,252,.75)}
+  100%{box-shadow:0 0 0 rgba(255,255,255,0)}
+}
+
+
+/* ☄️ 隕石術 V7：嚴格時間軸 */
+#meteor-spell-overlay.active .meteor-vignette{animation:meteorVignetteV7 2.55s ease-out both}
+#meteor-spell-overlay.active .meteor-comet{animation:meteorFallV7 .72s cubic-bezier(.72,0,.18,1) .78s both}
+#meteor-spell-overlay.active .meteor-rune{animation:runeV7 .70s ease-out .05s both}
+#meteor-spell-overlay.active .ring-a{animation:ringV7 1.05s ease-out .08s both}
+#meteor-spell-overlay.active .ring-b{animation:ringV7 1.00s ease-out .18s both}
+#meteor-spell-overlay.active .meteor-core{animation:coreV7 1.10s cubic-bezier(.2,.8,.1,1) 1.46s both}
+#meteor-spell-overlay.active .meteor-flash{animation:flashV7 .34s ease-out 1.78s both}
+#meteor-spell-overlay.active .meteor-shockwave{animation:shockV7 .82s cubic-bezier(.1,.7,.1,1) 1.82s both}
+#meteor-spell-overlay.active .meteor-embers{animation:embersV7 1.00s ease-out 1.82s both}
+#meteor-spell-overlay.active .meteor-text{animation:textV7 .70s ease-out 1.60s both}
+
+@keyframes meteorVignetteV7{
+  0%,100%{opacity:0} 18%{opacity:.92} 62%{opacity:.62} 100%{opacity:0}
+}
+@keyframes runeV7{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-30deg)}
+  35%{opacity:1} 100%{opacity:.72;transform:translate(-50%,-50%) scale(1.05) rotate(0)}
+}
+@keyframes ringV7{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.10) rotate(-30deg)}
+  22%{opacity:.95}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.35) rotate(100deg)}
+}
+@keyframes meteorFallV7{
+  0%{top:-270px;right:12%;opacity:0;transform:rotate(35deg) scale(.5)}
+  12%{opacity:1}
+  78%{opacity:1}
+  100%{top:49%;right:45%;opacity:1;transform:rotate(35deg) scale(1.16)}
+}
+@keyframes coreV7{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.1)}
+  22%{opacity:1;transform:translate(-50%,-50%) scale(.45)}
+  62%{opacity:1;transform:translate(-50%,-50%) scale(1.25)}
+  74%{transform:translate(-50%,-50%) scale(5)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(13)}
+}
+@keyframes flashV7{
+  0%{opacity:0} 18%{opacity:1} 100%{opacity:0}
+}
+@keyframes shockV7{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.1)}
+  15%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(28)}
+}
+@keyframes embersV7{
+  0%{opacity:0;transform:scale(.82)}
+  20%{opacity:1}
+  100%{opacity:0;transform:scale(1.16)}
+}
+@keyframes textV7{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.65);filter:blur(7px)}
+  30%{opacity:1;transform:translate(-50%,-50%) scale(1.08);filter:blur(0)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.18)}
+}
+
+
+/* ⚡ 隕石術後：極速補滿棋盤 */
+.magic-refill{
+  animation:magicRefill .26s cubic-bezier(.16,.8,.28,1) both;
+}
+@keyframes magicRefill{
+  0%{opacity:0;transform:translateY(-10px) scale(.72);filter:brightness(2.2) blur(2px)}
+  65%{opacity:1;transform:translateY(2px) scale(1.06);filter:brightness(1.35) blur(0)}
+  100%{opacity:1;transform:translateY(0) scale(1);filter:brightness(1)}
+}
+
+
+/* ☄️ 隕石術：精準命中棋盤幾何中心 */
+#meteor-spell-overlay .meteor-comet{
+  left:50%;
+  right:auto;
+  top:-260px;
+  transform:translateX(-50%) rotate(35deg) scale(.55);
+}
+#meteor-spell-overlay.active .meteor-comet{
+  animation:meteorFallCenterV9 .78s cubic-bezier(.72,0,.12,1) .78s both;
+}
+@keyframes meteorFallCenterV9{
+  0%{
+    left:50%;top:-280px;opacity:0;
+    transform:translateX(-50%) rotate(35deg) scale(.45);
+  }
+  12%{opacity:1}
+  78%{opacity:1}
+  100%{
+    left:50%;top:50%;opacity:1;
+    transform:translate(-50%,-50%) rotate(35deg) scale(1.18);
+  }
+}
+
+
+/* ☄️ V11：明確可見的「正上方 → 棋盤中心」隕石墜落 */
+#meteor-spell-overlay .meteor-sky{
+  position:absolute !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100vh !important;
+  transform:none !important;
+  overflow:visible !important;
+}
+#meteor-spell-overlay .meteor-comet{
+  position:absolute !important;
+  left:50vw !important;
+  top:-300px !important;
+  right:auto !important;
+  width:58px !important;
+  height:210px !important;
+  margin:0 !important;
+  opacity:0 !important;
+  border-radius:50% 50% 42% 42% !important;
+  background:linear-gradient(to bottom,#c4b5fd 0%,#e9d5ff 28%,#fde68a 58%,#fb923c 82%,#dc2626 100%) !important;
+  filter:blur(1px) !important;
+  box-shadow:
+    0 0 18px #fff,
+    0 0 38px #fde68a,
+    0 0 72px #fb923c,
+    0 0 115px rgba(192,132,252,.95) !important;
+}
+#meteor-spell-overlay .meteor-comet::before{
+  content:'' !important;
+  position:absolute !important;
+  width:130px !important;
+  height:520px !important;
+  left:50% !important;
+  top:-390px !important;
+  transform:translateX(-50%) !important;
+  background:linear-gradient(to top,rgba(251,146,60,.82),rgba(253,230,138,.42),rgba(192,132,252,.18),transparent) !important;
+  filter:blur(9px) !important;
+  border-radius:50% !important;
+}
+#meteor-spell-overlay .meteor-comet::after{
+  content:'✦' !important;
+  position:absolute !important;
+  left:50% !important;
+  top:48% !important;
+  transform:translate(-50%,-50%) !important;
+  color:#fff !important;
+  font-size:30px !important;
+  text-shadow:0 0 15px #fff,0 0 35px #fde68a !important;
+}
+#meteor-spell-overlay.active .meteor-comet{
+  animation:meteorFallClearlyV11 1.15s cubic-bezier(.72,0,.12,1) .58s both !important;
+}
+@keyframes meteorFallClearlyV11{
+  0%{
+    left:50vw;top:-300px;opacity:0;
+    transform:translateX(-50%) rotate(35deg) scale(.45);
+  }
+  8%{opacity:1}
+  65%{opacity:1}
+  100%{
+    left:50vw;top:50vh;opacity:1;
+    transform:translate(-50%,-50%) rotate(35deg) scale(1.22);
+  }
+}
+
+/* 中心魔法爆炸也固定在 viewport 正中央 */
+#meteor-spell-overlay .meteor-rune,
+#meteor-spell-overlay .meteor-ring,
+#meteor-spell-overlay .meteor-core,
+#meteor-spell-overlay .meteor-shockwave{
+  left:50vw !important;top:50vh !important;
+}
+
+/* 火球／碎片的視覺中心 */
+#meteor-spell-overlay .meteor-flash{
+  background:
+    radial-gradient(circle at 50% 50%,
+      #fff 0%,#fde68a 7%,rgba(251,146,60,.72) 17%,
+      rgba(192,132,252,.27) 36%,transparent 65%) !important;
+}
+
+
+#meteor-spell-overlay.active .meteor-sky::after{
+  content:'';
+  position:absolute;
+  left:50vw;
+  top:-10vh;
+  width:5px;height:115vh;
+  transform:translateX(-50%);
+  background:linear-gradient(to bottom,transparent,rgba(192,132,252,.05),rgba(253,230,138,.16),transparent);
+  filter:blur(5px);
+  opacity:0;
+  animation:meteorSkyStreakV11 1.15s ease-out .58s both;
+}
+@keyframes meteorSkyStreakV11{
+  0%{opacity:0}
+  20%{opacity:.55}
+  70%{opacity:.22}
+  100%{opacity:0}
+}
+
+
+/* ☄️ V12 — 電影式隕石墜落：像參考圖的「遠景出現 → 加速 → 正中央撞擊」 */
+#meteor-spell-overlay .meteor-sky{
+  position:absolute!important;inset:0!important;width:100vw!important;height:100vh!important;
+  overflow:visible!important;transform:none!important;
+}
+#meteor-spell-overlay .meteor-trail{
+  position:absolute!important;
+  left:50vw!important;
+  top:-38vh!important;
+  transform:translateX(-50%) rotate(35deg);
+  transform-origin:50% 100%;
+  pointer-events:none;
+  opacity:0;
+}
+#meteor-spell-overlay .trail-wide{
+  width:150px;height:65vh;
+  background:linear-gradient(to bottom,
+    transparent 0%,
+    rgba(139,92,246,.04) 22%,
+    rgba(192,132,252,.12) 55%,
+    rgba(251,146,60,.38) 82%,
+    rgba(253,230,138,.72) 100%);
+  filter:blur(18px);
+}
+#meteor-spell-overlay .trail-core{
+  width:32px;height:55vh;
+  background:linear-gradient(to bottom,
+    transparent 0%,
+    rgba(103,232,249,.06) 24%,
+    rgba(192,132,252,.28) 58%,
+    rgba(253,230,138,.78) 88%,
+    #fff 100%);
+  filter:blur(4px);
+}
+#meteor-spell-overlay .meteor-comet{
+  position:absolute!important;
+  left:50vw!important;top:-25vh!important;right:auto!important;
+  width:70px!important;height:230px!important;
+  opacity:0!important;margin:0!important;
+  border-radius:52% 48% 45% 55%!important;
+  background:
+    radial-gradient(circle at 48% 20%,#fff 0 5%,#fde68a 14%,#fb923c 39%,#dc2626 66%,#581c87 100%)!important;
+  box-shadow:
+    0 0 18px #fff,
+    0 0 38px #fde68a,
+    0 0 78px #fb923c,
+    0 0 125px rgba(192,132,252,.95)!important;
+  filter:blur(.5px)!important;
+}
+#meteor-spell-overlay .meteor-comet::before{
+  content:''!important;position:absolute!important;
+  width:180px!important;height:430px!important;
+  left:50%!important;top:-335px!important;
+  transform:translateX(-50%)!important;
+  background:linear-gradient(to top,rgba(251,146,60,.72),rgba(253,230,138,.38),rgba(192,132,252,.16),transparent)!important;
+  filter:blur(14px)!important;border-radius:50%!important;
+}
+#meteor-spell-overlay .meteor-comet::after{
+  content:'✦'!important;position:absolute!important;
+  left:50%!important;top:46%!important;
+  transform:translate(-50%,-50%)!important;
+  color:#fff!important;font-size:34px!important;
+  text-shadow:0 0 15px #fff,0 0 35px #fde68a,0 0 65px #fb923c!important;
+}
+#meteor-spell-overlay.active .meteor-comet{
+  animation:meteorCinematicFallV12 1.72s cubic-bezier(.72,0,.12,1) .48s both!important;
+}
+#meteor-spell-overlay.active .trail-wide{
+  animation:trailFallV12 1.72s cubic-bezier(.72,0,.12,1) .48s both!important;
+}
+#meteor-spell-overlay.active .trail-core{
+  animation:trailFallV12 1.72s cubic-bezier(.72,0,.12,1) .48s both!important;
+}
+@keyframes meteorCinematicFallV12{
+  0%{
+    left:50vw;top:-32vh;opacity:0;
+    transform:translateX(-50%) rotate(35deg) scale(.25);
+  }
+  10%{opacity:1}
+  34%{transform:translateX(-50%) rotate(35deg) scale(.52)}
+  62%{transform:translateX(-50%) rotate(35deg) scale(.82)}
+  86%{transform:translate(-50%,-50%) rotate(35deg) scale(1.05)}
+  100%{
+    left:50vw;top:50vh;opacity:1;
+    transform:translate(-50%,-50%) rotate(35deg) scale(1.22);
+  }
+}
+@keyframes trailFallV12{
+  0%{
+    left:50vw;top:-52vh;opacity:0;
+    transform:translateX(-50%) rotate(35deg) scaleY(.25);
+  }
+  10%{opacity:.15}
+  35%{opacity:.45}
+  65%{opacity:.72}
+  100%{
+    left:50vw;top:5vh;opacity:.9;
+    transform:translateX(-50%) rotate(35deg) scaleY(1.05);
+  }
+}
+
+/* 隕石出現前的天空壓暗，讓橘金色火焰更突出 */
+#meteor-spell-overlay.active .meteor-vignette{
+  animation:meteorCinematicVignetteV12 3.0s ease-out both!important;
+}
+@keyframes meteorCinematicVignetteV12{
+  0%{opacity:0}
+  18%{opacity:.82}
+  58%{opacity:.72}
+  100%{opacity:0}
+}
+
+/* 撞擊中心：金色／紫色雙層爆炸 */
+#meteor-spell-overlay.active .meteor-core{
+  animation:meteorCoreImpactV12 1.0s cubic-bezier(.2,.8,.08,1) 2.16s both!important;
+}
+#meteor-spell-overlay.active .meteor-flash{
+  animation:meteorFlashV12 .42s ease-out 2.42s both!important;
+}
+#meteor-spell-overlay.active .meteor-shockwave{
+  animation:meteorShockV12 .95s cubic-bezier(.08,.72,.08,1) 2.45s both!important;
+}
+@keyframes meteorCoreImpactV12{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.12)}
+  22%{opacity:1;transform:translate(-50%,-50%) scale(.48)}
+  58%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}
+  72%{transform:translate(-50%,-50%) scale(4.8)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(15)}
+}
+@keyframes meteorFlashV12{
+  0%{opacity:0}18%{opacity:1}100%{opacity:0}
+}
+@keyframes meteorShockV12{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.08)}
+  14%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(29)}
+}
+
+</style>
+
+<style id="meteor-exec-fix">
+#meteor-spell-stable{display:none}
+#meteor-spell-stable.active{display:block}
+#meteor-spell-stable .ms-meteor{will-change:left,top,transform,opacity}
+</style>
+
+
+<style id="meteor-impact-position-fix">
+#meteor-spell-stable .ms-ring,
+#meteor-spell-stable .ms-title{
+  will-change:left,top,transform,opacity;
+}
+#meteor-spell-stable .ms-flash{
+  transition:none;
+}
+</style>
+
+<style id="spell-unavailable-style">
+.power-btn.spell-unavailable{opacity:.42;filter:saturate(.55);cursor:not-allowed}
+</style>
+
+<style id="meteor-v18-css">
+#meteor-spell-stable,#meteor-spell-overlay{display:none!important}
+#energy-warning-toast{
+  position:fixed;left:50%;top:78%;transform:translate(-50%,10px) scale(.92);
+  z-index:2147483647;pointer-events:none;opacity:0;
+  padding:11px 18px;border-radius:16px;
+  background:linear-gradient(135deg,rgba(49,12,75,.96),rgba(76,29,149,.96));
+  border:1px solid rgba(253,230,138,.5);
+  color:#fff7ed;font-weight:1000;font-size:.82rem;letter-spacing:1px;
+  box-shadow:0 0 30px rgba(168,85,247,.45),0 10px 30px rgba(0,0,0,.4);
+  transition:opacity .18s ease,transform .18s ease;
+}
+#energy-warning-toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
+#meteor-runtime-v18{
+  position:fixed;inset:0;z-index:2147483647;pointer-events:none;overflow:hidden;
+}
+.m18-meteor{
+  position:fixed;width:84px;height:155px;left:0;top:0;opacity:0;
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 18%,#fff 0 7%,#ffe89a 16%,#ffb000 38%,#ff6818 62%,#c62828 82%,#54208a 100%);
+  box-shadow:0 0 20px #fff,0 0 45px #ffe680,0 0 90px #ff7a18,0 0 140px rgba(168,85,247,.92);
+  will-change:left,top,transform,opacity;
+}
+.m18-meteor:before{
+  content:'';position:absolute;left:50%;bottom:66%;width:180px;height:520px;
+  transform:translateX(-50%);border-radius:50%;
+  background:linear-gradient(to top,rgba(255,255,255,.2),rgba(255,220,130,.55),rgba(255,126,42,.35),rgba(168,85,247,.15),transparent);
+  filter:blur(13px);
+}
+.m18-meteor:after{
+  content:'✦';position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);
+  color:#fff;font-size:34px;text-shadow:0 0 15px #fff,0 0 34px #ffe680,0 0 64px #ff7a18;
+}
+.m18-flash{
+  position:fixed;inset:0;opacity:0;
+  background:radial-gradient(circle at var(--ix) var(--iy),#fff 0 4%,rgba(255,225,125,.84) 10%,rgba(255,113,30,.45) 20%,rgba(168,85,247,.18) 38%,transparent 66%);
+}
+.m18-ring{
+  position:fixed;left:var(--ix);top:var(--iy);width:26px;height:26px;
+  border:6px solid rgba(255,255,255,.92);border-radius:50%;opacity:0;
+  transform:translate(-50%,-50%) scale(.1);
+  box-shadow:0 0 30px #fff,0 0 70px #ffe680,0 0 120px #a855f7;
+}
+.m18-title{
+  position:fixed;left:var(--ix);top:calc(var(--iy) + 120px);
+  transform:translate(-50%,-50%) scale(.72);opacity:0;
+  color:#fff7ed;font-size:clamp(24px,5vw,48px);font-weight:1000;letter-spacing:8px;
+  text-shadow:0 0 8px #fff,0 0 22px #ff7a18,0 0 45px #a855f7;
+}
+.m18-impact{
+  animation:m18TileImpact .48s ease-out both;
+}
+@keyframes m18TileImpact{
+  0%{transform:scale(1);filter:brightness(1)}
+  35%{transform:scale(1.16);filter:brightness(2.5);box-shadow:0 0 30px rgba(253,230,138,.95)}
+  100%{transform:scale(.35);opacity:0;filter:brightness(3) blur(1px)}
+}
+</style>
+
 </head>
 <body>
 <canvas class="bg-canvas" id="bgCanvas"></canvas>
@@ -256,6 +1473,34 @@ h1 {
     <span class="multiplier-val" id="combo-display">x1</span>
     <div class="multiplier-bar"><div class="multiplier-fill" id="combo-fill" style="width:0%"></div></div>
   </div>
+
+  <div class="challenge-panel" id="boss-panel" style="display:none">
+    <div class="challenge-top">
+      <span class="challenge-title">👹 BOSS 戰</span>
+      <span class="challenge-progress" id="boss-progress">0 / 100</span>
+    </div>
+    <div class="challenge-track"><div class="challenge-fill" id="boss-fill"></div></div>
+  </div>
+  <div id="event-banner" style="display:none;width:100%;margin:0 0 10px;padding:9px 12px;border-radius:14px;background:linear-gradient(135deg,rgba(6,182,212,.14),rgba(139,92,246,.14));border:1px solid rgba(6,182,212,.22);color:#fff;font-size:.72rem;font-weight:900;text-align:center"></div>
+
+  <div class="challenge-panel">
+    <div class="challenge-top">
+      <span class="challenge-title">🎯 本局目標</span>
+      <span class="challenge-progress" id="challenge-progress">0 / 10</span>
+    </div>
+    <div class="challenge-track"><div class="challenge-fill" id="challenge-fill"></div></div>
+  </div>
+<div class="streak-wrap">
+    <span class="streak-label">🔥 STREAK</span>
+    <div class="streak-timer"><div class="streak-fill" id="streak-fill"></div></div>
+  </div>
+  <div class="power-row" style="grid-template-columns:1fr 1fr 1fr">
+    <button class="power-btn" id="bomb-btn" onclick="useBomb()">🔥 火球術 <small>2⚡</small></button>
+    <button class="power-btn" id="reroll-btn" onclick="useMeteor()">☄️ 隕石術 <small>3⚡</small></button>
+    <button class="power-btn" id="double-btn" onclick="toggleDouble()">⚡ 火力加倍 <small id="double-cost">2⚡</small></button>
+  </div>
+
+  
   <div class="energy-bar-container">
     <div class="energy-text"><span>⚡ 能量</span><span id="energy-count">5 / 5</span></div>
     <div class="energy-pips" id="energy-pips"></div>
@@ -266,15 +1511,16 @@ h1 {
     <div class="game-board" id="board"></div>
   </div>
   <div class="btn-row">
-    <button class="btn btn-hint" id="hint-btn" onclick="showHint()">💡</button>
-    <button class="btn btn-reset" onclick="resetGame()">重開一局</button>
+    <button class="btn btn-hint" id="hint-btn" onclick="showHint()">🎯</button>
+    <button class="btn btn-reset" onclick="resetGame()">重新部署</button>
   </div>
 </div>
 <div class="modal" id="game-over-modal">
   <div class="modal-card">
     <div style="font-size:3rem;margin-bottom:10px">🎮</div>
     <h2>遊戲結束</h2>
-    <p>本次得分</p>
+    <p>能量耗盡且沒有可用合併</p>
+    <p style="margin-top:10px">本次得分</p>
     <div class="modal-score" id="final-score">0</div>
     <button class="modal-btn" onclick="resetGame()">再戰一回 🔥</button>
   </div>
@@ -350,6 +1596,15 @@ const SoundSystem = {
       setTimeout(()=>this.tone(base*1.25,0.2,0.15,'sine'),60);
       setTimeout(()=>this.tone(base*1.5,0.25,0.25,'sine'),120);
       if(combo>=5) setTimeout(()=>this.tone(base*2,0.3,0.3,'triangle'),200);
+    } else if(action==='fireball') {
+      this.tone(180,0.10,0.08,'sawtooth');
+      setTimeout(()=>this.tone(520,0.16,0.12,'triangle'),70);
+      setTimeout(()=>this.tone(880,0.20,0.16,'sine'),130);
+    } else if(action==='meteor') {
+      this.tone(90,0.18,0.12,'sawtooth');
+      setTimeout(()=>this.tone(140,0.25,0.18,'sawtooth'),90);
+      setTimeout(()=>this.tone(70,0.40,0.28,'triangle'),180);
+      setTimeout(()=>this.tone(980,0.22,0.18,'sine'),300);
     } else if(action==='gameover') {
       [400,350,300,250].forEach((f,i)=>setTimeout(()=>this.tone(f,0.2,0.3,'sawtooth'),i*120));
     }
@@ -367,7 +1622,17 @@ const SoundSystem = {
 // ── Game state ──
 const colorClasses = ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'];
 const cellColors = ['#ff6b9d','#4facfe','#43e97b','#fa709a','#a18cd1','#f093fb','#4facfe','#667eea','#f7971e','#f43f5e'];
-let state = { board:[], score:0, energy:5, combo:0, isLocked:false, level:1, totalMerges:0 };
+let state = {
+  board:[], score:0, energy:5, combo:0, isLocked:false, level:1, totalMerges:0,
+  streak:0, doubleNext:false, missionBase:10,
+  special:{},
+  boss:{active:false,hp:100,maxHp:100,turns:0},
+  event:null,
+  gamesPlayed:Number(localStorage.getItem('cg_games')||0)
+};
+let streakTimer = null;
+let streakUntil = 0;
+
 const cells = [];
 let hintTimeout = null;
 let hintCells = [];
@@ -378,7 +1643,7 @@ function init() {
   const boardEl = document.getElementById('board');
   boardEl.innerHTML = '';
   cells.length = 0;
-  for(let i=0;i<25;i++) {
+  for(let i=0;i<36;i++) {
     const cell = document.createElement('div');
     cell.className = 'cell';
     const span = document.createElement('span');
@@ -388,6 +1653,7 @@ function init() {
     cells.push({el:cell, span});
   }
   loadData();
+  state.inputQueue = [];
   if(!state.board||state.board.length===0) resetGame();
   else render(true);
 }
@@ -404,8 +1670,17 @@ function buildPips() {
 }
 
 function loadData() {
-  const saved = localStorage.getItem('clickgame_v3');
-  if(saved) { state=JSON.parse(saved); state.isLocked=false; }
+  const saved = localStorage.getItem('clickgame_v10');
+  if(saved) {
+    state=JSON.parse(saved); state.isLocked=false;
+    state.streak=Number(state.streak)||0;
+    state.doubleNext=!!state.doubleNext;
+    state.missionBase=Number(state.missionBase)||10;
+    state.special=state.special||{};
+    state.boss=state.boss||{active:false,hp:100,maxHp:100,turns:0};
+    state.event=state.event||null;
+    state.gamesPlayed=Number(state.gamesPlayed)||0;
+  }
 }
 
 function saveData() {
@@ -421,7 +1696,7 @@ function saveData() {
 
 function resetGame() {
   document.getElementById('game-over-modal').classList.remove('active');
-  state.board = Array(25).fill(0).map(()=>Math.floor(Math.random()*4)+1);
+  state.board = Array(36).fill(0).map(()=>Math.floor(Math.random()*4)+1);
   state.score=0; state.energy=5; state.combo=0; state.isLocked=false;
   state.level=1; state.totalMerges=0;
   clearHint();
@@ -433,7 +1708,8 @@ function getLevel(merges) { return Math.floor(merges/10)+1; }
 function render(full=false) {
   state.board.forEach((val,i)=>{
     const c=cells[i];
-    const cls = 'cell ' + (colorClasses[(val-1)%10]||'');
+    let specialCls='';
+    const cls = 'cell ' + (colorClasses[(val-1)%10]||'') + (state.boss.active && i===0 ? ' boss-cell' : '');
     if(full || c.el.className!==cls) {
       c.el.className = cls;
       c.span.innerText = val||'';
@@ -458,6 +1734,32 @@ function render(full=false) {
   if(state.combo>=5) comboEl.style.color='#f43f5e';
   else if(state.combo>=3) comboEl.style.color='#fb923c';
   else comboEl.style.color='#fbbf24';
+  // Boss / random event HUD
+  const bp=document.getElementById('boss-panel');
+  bp.style.display=state.boss.active?'block':'none';
+  document.getElementById('boss-progress').innerText=`${Math.max(0,state.boss.hp)} / ${state.boss.maxHp}`;
+  document.getElementById('boss-fill').style.width=`${Math.max(0,state.boss.hp/state.boss.maxHp*100)}%`;
+  const eb=document.getElementById('event-banner');
+  if(state.event){ eb.style.display='block'; eb.innerText=state.event; }
+  else eb.style.display='none';
+
+  // Mission / powerups
+  const lvNow=getLevel(state.totalMerges);
+  const missionGoal=8 + lvNow*2;
+  const missionDone=state.totalMerges % missionGoal;
+  document.getElementById('challenge-progress').innerText=`${missionDone} / ${missionGoal}`;
+  document.getElementById('challenge-fill').style.width=`${Math.min(100,missionDone/missionGoal*100)}%`;
+  document.getElementById('bomb-btn').disabled=false;
+  document.getElementById('reroll-btn').disabled=false;
+  document.getElementById('double-btn').disabled=false;
+  document.getElementById('bomb-btn').classList.toggle('spell-unavailable', state.energy<=2 || state.isLocked);
+  document.getElementById('reroll-btn').classList.toggle('spell-unavailable', state.energy<=3 || state.isLocked);
+  const doubleBtn=document.getElementById('double-btn');
+  doubleBtn.classList.toggle('spell-unavailable', (state.energy<=2 && !state.doubleNext) || state.isLocked);
+  doubleBtn.classList.toggle('double-active',!!state.doubleNext);
+  document.getElementById('double-cost').innerText=state.doubleNext?'已啟用：下一次合併 ×2':'消耗 2 能量';
+  document.getElementById('streak-fill').style.width=state.streak>0 ? `${Math.max(0,Math.min(100,(streakUntil-Date.now())/3500*100))}%` : '0%';
+
   // Level
   const lv=getLevel(state.totalMerges);
   document.getElementById('level-badge').innerText=`LV ${lv}`;
@@ -472,18 +1774,28 @@ async function handleCellClick(idx) {
   clearHint();
   state.isLocked=true;
   SoundSystem.play('tap');
-  state.energy--; state.board[idx]++; state.combo=0;
-  cells[idx].el.classList.add('idle-bounce');
-  setTimeout(()=>cells[idx].el.classList.remove('idle-bounce'),500);
-  render();
-  await processMatches(idx);
-  state.isLocked=false;
-  saveData(); render();
-  if(state.energy<=0&&!hasPossibleMatch()) {
-    SoundSystem.play('gameover');
-    document.getElementById('final-score').innerText=state.score.toLocaleString();
-    document.getElementById('game-over-modal').classList.add('active');
+  state.energy--;
+  state.combo=0;
+
+  const special=state.special[idx];
+  if(special){
+    await triggerSpecial(idx,special,true);
+    render();
+    await applyGravity();
+    // 爆破後檢查新形成的普通連鎖
+    await resolveAutoMatches();
+  } else {
+    state.board[idx]++;
+    cells[idx].el.classList.add('idle-bounce');
+    setTimeout(()=>cells[idx].el.classList.remove('idle-bounce'),250);
+    render();
+    await processMatches(idx);
   }
+
+  state.isLocked=false;
+  saveData();
+  render();
+  if(state.energy<=0&&!hasPossibleMatch()) endGame();
 }
 
 async function processMatches(startIdx) {
@@ -495,28 +1807,77 @@ async function processMatches(startIdx) {
       state.totalMerges++;
       const bc=Number(localStorage.getItem('cg_best_combo'))||0;
       if(state.combo>bc) { localStorage.setItem('cg_best_combo',state.combo); document.getElementById('best-combo').innerText=state.combo; }
+
+      // 先記錄所有待引爆，避免一般合併動畫先把它們清掉。
+      const triggeredSpecials=matches
+        .filter(i=>false)
+        .map(i=>({idx:i,type:false,value:state.board[i]}));
+
       const val=state.board[targetIdx];
-      const ptsAdded=val*matches.length*state.combo*10;
+      state.streak++;
+      startStreak();
+      const streakBonus=Math.min(5, Math.max(0, Math.floor(state.streak/3)));
+      const doubleMult=state.doubleNext ? 2 : 1;
+      const eventMult=state.eventBoost>0 ? 1.5 : 1;
+      const ptsAdded=Math.floor(val*matches.length*state.combo*(1+streakBonus)*10*doubleMult*eventMult);
+      if(state.eventBoost>0) state.eventBoost--;
       state.score+=ptsAdded;
+      state.doubleNext=false;
+
+      if(state.boss.active){
+        const dmg=Math.max(1,Math.floor(ptsAdded/25));
+        state.boss.hp-=dmg;
+        state.boss.turns++;
+        showFeedback(targetIdx,`👹 -${dmg}`,0);
+        if(state.boss.hp<=0){
+          state.score+=1000;
+          state.energy=Math.min(5,state.energy+2);
+          state.boss.active=false;
+          state.totalMerges+=3;
+          showFeedback(targetIdx,'👑 BOSS DEFEATED +1000',0);
+          const rect=cells[targetIdx].el.getBoundingClientRect();
+          spawnParticles(rect.left+rect.width/2,rect.top+rect.height/2,'#fbbf24',50);
+        }
+      }
+
       state.energy=Math.min(5,state.energy+1);
       SoundSystem.play('match',state.combo);
-      // Score bump
+
       const scoreEl=document.getElementById('score');
       scoreEl.classList.remove('bump'); void scoreEl.offsetWidth; scoreEl.classList.add('bump');
-      // Particles
+
       const rect=cells[targetIdx].el.getBoundingClientRect();
       const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
       const color=cellColors[(val-1)%10];
       spawnParticles(cx,cy,color,state.combo>=5?30:18);
       if(state.combo>=3) spawnParticles(cx,cy,'#fbbf24',10);
       showFeedback(targetIdx,`+${ptsAdded}`,state.combo);
+
+      if(state.totalMerges % (8 + getLevel(state.totalMerges)*2) === 0) {
+        state.energy=Math.min(5,state.energy+2);
+        showFeedback(targetIdx,'🎯 任務達成 +2⚡',0);
+      }
       if(state.combo>=8) {
         const c=document.getElementById('main-container');
         c.classList.add('shake-active');
         setTimeout(()=>c.classList.remove('shake-active'),300);
       }
-      // Merge animation
-      const movePromises=matches.filter(i=>i!==targetIdx).map(async(i)=>{
+
+      // 若本次合併碰到，先整批引爆。
+      // 這是修正重點：不能等普通合併把清成 0 後才觸發。
+      if(triggeredSpecials.length){
+        await Promise.all(
+          triggeredSpecials.map(s=>triggerSpecial(
+            s.idx,s.type,false,new Set(),s.value
+          ))
+        );
+        render();
+        await new Promise(r=>setTimeout(r,120));
+      }
+
+      // 合併動畫只處理仍然存在的普通方塊。
+      const aliveMatches=matches.filter(i=>state.board[i]>0 && i!==targetIdx);
+      const movePromises=aliveMatches.map(async(i)=>{
         const cellEl=cells[i].el;
         const tRect=cells[targetIdx].el.getBoundingClientRect();
         const oRect=cellEl.getBoundingClientRect();
@@ -524,76 +1885,448 @@ async function processMatches(startIdx) {
         cellEl.style.transform=`translate(${tRect.left-oRect.left}px,${tRect.top-oRect.top}px) scale(0.2)`;
         cellEl.style.opacity='0';
         state.board[i]=0;
+        
       });
-      await Promise.all([...movePromises, new Promise(r=>setTimeout(r,200))]);
-      matches.forEach(i=>{ cells[i].el.classList.remove('merging'); cells[i].el.style.transform=''; cells[i].el.style.opacity='1'; });
-      state.board[targetIdx]++;
-      cells[targetIdx].el.classList.add('target-pulse');
-      render();
-      await new Promise(r=>setTimeout(r,220));
-      cells[targetIdx].el.classList.remove('target-pulse');
+
+      await Promise.all([...movePromises,new Promise(r=>setTimeout(r,200))]);
+      matches.forEach(i=>{
+        cells[i].el.classList.remove('merging');
+        cells[i].el.style.transform='';
+        cells[i].el.style.opacity='1';
+      });
+
+      // 如果 target 本身在連鎖中已被清掉，就不要把它「復活」。
+      if(state.board[targetIdx]>0){
+        state.board[targetIdx]++;
+
+cells[targetIdx].el.classList.add('target-pulse');
+        render();
+        await new Promise(r=>setTimeout(r,100));
+        cells[targetIdx].el.classList.remove('target-pulse');
+      }
+
+      // 每次爆破/合併後都重力補滿，再掃描真正相鄰的連鎖。
       await applyGravity();
+
       targetIdx=-1;
-      for(let i=0;i<25;i++) { if(state.board[i]>0&&findMatches(i).length>=3){targetIdx=i;break;} }
-    } else { targetIdx=-1; }
+      for(let i=0;i<36;i++) {
+        if(state.board[i]>0 && findMatches(i).length>=3){
+          targetIdx=i;
+          break;
+        }
+      }
+    } else {
+      targetIdx=-1;
+    }
   }
 }
 
 function findMatches(idx) {
-  const val=state.board[idx]; if(!val) return [];
-  const queue=[idx], result=[], visited=new Set([idx]);
-  while(queue.length>0) {
-    const curr=queue.shift(); result.push(curr);
-    const r=Math.floor(curr/5), c=curr%5;
-    [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(([nr,nc])=>{
-      const ni=nr*5+nc;
-      if(nr>=0&&nr<5&&nc>=0&&nc<5&&!visited.has(ni)&&state.board[ni]===val) { visited.add(ni); queue.push(ni); }
-    });
+  const val = state.board[idx];
+  if (!val) return [];
+
+  // 只允許上下左右相鄰；斜角不算連線。
+  const queue = [idx];
+  const result = [];
+  const visited = new Set([idx]);
+
+  while (queue.length) {
+    const curr = queue.shift();
+    result.push(curr);
+
+    const r = Math.floor(curr / 6);
+    const c = curr % 6;
+    const neighbors = [
+      [r - 1, c], [r + 1, c],
+      [r, c - 1], [r, c + 1]
+    ];
+
+    for (const [nr, nc] of neighbors) {
+      if (nr < 0 || nr >= 6 || nc < 0 || nc >= 6) continue;
+      const ni = nr * 6 + nc;
+      if (!visited.has(ni) && state.board[ni] === val) {
+        visited.add(ni);
+        queue.push(ni);
+      }
+    }
   }
   return result;
 }
 
 async function applyGravity() {
   let dropped=false;
-  for(let c=0;c<5;c++) {
+  for(let c=0;c<6;c++) {
     let emptyRow=-1;
-    for(let r=4;r>=0;r--) {
-      const idx=r*5+c;
+    for(let r=5;r>=0;r--) {
+      const idx=r*6+c;
       if(state.board[idx]===0) { if(emptyRow===-1) emptyRow=r; }
       else if(emptyRow!==-1) {
-        state.board[emptyRow*5+c]=state.board[idx]; state.board[idx]=0;
-        cells[emptyRow*5+c].el.classList.add('dropping'); emptyRow--; dropped=true;
+        state.board[emptyRow*6+c]=state.board[idx]; state.board[idx]=0;
+        if(state.special[idx]) { state.special[emptyRow*6+c]=state.special[idx]; delete state.special[idx]; }
+        cells[emptyRow*6+c].el.classList.add('dropping'); emptyRow--; dropped=true;
       }
     }
     for(let r=emptyRow;r>=0&&r!==-1;r--) {
-      state.board[r*5+c]=Math.floor(Math.random()*4)+1;
-      cells[r*5+c].el.classList.add('dropping'); dropped=true;
+      state.board[r*6+c]=Math.floor(Math.random()*4)+1;
+      delete state.special[r*6+c];
+      cells[r*6+c].el.classList.add('dropping'); dropped=true;
     }
   }
   render();
-  if(dropped) { await new Promise(r=>setTimeout(r,480)); cells.forEach(c=>c.el.classList.remove('dropping')); }
+  if(dropped) { await new Promise(r=>setTimeout(r,220)); cells.forEach(c=>c.el.classList.remove('dropping')); }
 }
 
 function hasPossibleMatch() {
-  for(let i=0;i<25;i++) { if(state.board[i]>0&&findMatches(i).length>=3) return true; }
+  for(let i=0;i<36;i++) { if(state.board[i]>0&&findMatches(i).length>=3) return true; }
   return false;
+}
+
+
+
+
+function rerollTiles(){ useMeteor(); }
+
+async function triggerSpecial(idx,type,manual=false,seen=new Set(),forcedValue=null){
+  if(idx<0 || idx>=36 || !type) return;
+  if(seen.has(idx)) return;
+  seen.add(idx);
+
+  const r=Math.floor(idx/6), c=idx%6;
+  const value=forcedValue ?? state.board[idx] ?? 1;
+  let targets=[];
+
+  if(type==='bomb'){
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+      const nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<6&&nc>=0&&nc<6) targets.push(nr*6+nc);
+    }
+  } else if(type==='star'){
+    for(let i=0;i<6;i++){ targets.push(r*6+i); targets.push(i*6+c); }
+  } else if(type==='rainbow'){
+    targets=state.board.map((v,i)=>v===value?i:-1).filter(i=>i>=0);
+  }
+
+  targets=[...new Set(targets)];
+
+  // 先抓出本次爆炸會碰到的特殊方塊，再清場，避免特殊方塊被清掉後失去觸發資格。
+  const chain=targets
+    .filter(i=>i!==idx && state.special[i])
+    .map(i=>({idx:i,type:state.special[i],value:state.board[i]}));
+
+  targets.forEach(i=>{
+    state.board[i]=0;
+    delete state.special[i];
+    cells[i]?.el.classList.add('chain-explode');
+  });
+
+  const rect=cells[idx]?.el?.getBoundingClientRect();
+  if(rect){
+    const color=type==='bomb'?'#f43f5e':type==='star'?'#fbbf24':'#06b6d4';
+    spawnParticles(rect.left+rect.width/2,rect.top+rect.height/2,color,32);
+  }
+
+  state.score += targets.length * (type==='rainbow' ? Math.max(1,value)*20 : 20);
+  if(manual) state.energy=Math.min(5,state.energy+1);
+  SoundSystem.play('match',Math.min(8,state.combo+2));
+  render();
+
+  // 不把整個遊戲鎖死等待動畫；只留極短視覺節奏，讓玩家很快恢復操作。
+  await new Promise(r=>setTimeout(r,90));
+
+  for(const sp of chain){
+    await triggerSpecial(sp.idx,sp.type,false,seen,sp.value);
+  }
+
+  targets.forEach(i=>cells[i]?.el.classList.remove('chain-explode'));
+}
+
+async function resolveAutoMatches(){
+  let guard=0;
+  while(guard++<20){
+    let idx=-1;
+    for(let i=0;i<36;i++){
+      if(state.board[i] && findMatches(i).length>=3){
+        idx=i;
+        break;
+      }
+    }
+    if(idx<0) break;
+    await processMatches(idx);
+  }
+}
+
+function startStreak() {
+  streakUntil=Date.now()+3500;
+  clearTimeout(streakTimer);
+  const tick=()=>{
+    if(Date.now()>=streakUntil){
+      state.streak=0;
+      render();
+      return;
+    }
+    render();
+    streakTimer=setTimeout(tick,100);
+  };
+  tick();
+}
+function stopStreak() {
+  clearTimeout(streakTimer);
+  streakTimer=null;
+  streakUntil=0;
+  state.streak=0;
+}
+
+
+let energyToastTimer=null;
+function showEnergyWarning(cost){
+  const el=document.getElementById('energy-warning-toast');
+  if(!el) return;
+  el.textContent=`⚡ 能量不足：施法後必須保留至少 1 點能量（本技能消耗 ${cost} 點）`;
+  el.classList.add('show');
+  clearTimeout(energyToastTimer);
+  energyToastTimer=setTimeout(()=>el.classList.remove('show'),1400);
+}
+
+function useBomb() {
+  if(state.isLocked) return;
+  if(state.energy<=2){ showEnergyWarning(2); return; }
+  clearHint();
+  state.isLocked=true;
+  state.energy-=2;
+
+  // 火球術：選取一格作為落點，焚燒該格周圍 3×3。
+  const center=Math.floor(Math.random()*36);
+  const r=Math.floor(center/6), c=center%6;
+  const targets=[];
+  for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+    const nr=r+dr,nc=c+dc;
+    if(nr>=0&&nr<6&&nc>=0&&nc<6){
+      const i=nr*6+nc;
+      if(state.board[i]>0) targets.push(i);
+    }
+  }
+
+  const rect=cells[center].el.getBoundingClientRect();
+  const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+  spawnParticles(cx,cy,'#ff7a18',55);
+  spawnParticles(cx,cy,'#ffd166',28);
+
+  targets.forEach(i=>{
+    state.board[i]=0;
+    cells[i].el.classList.add('target-pulse');
+  });
+  const removed=targets.reduce((sum,i)=>sum+state.board[i],0);
+  state.score += removed*20 + targets.length*10;
+  state.combo=0;
+  SoundSystem.play('fireball');
+  render();
+
+  setTimeout(()=>targets.forEach(i=>cells[i].el.classList.remove('target-pulse')),420);
+  setTimeout(async()=>{
+    await applyGravity();
+    state.isLocked=false;
+    saveData(); render();
+    if(state.energy<=0&&!hasPossibleMatch()) endGame();
+  },480);
+}
+
+async function useMeteor(){
+  if(state.isLocked) return;
+  if(state.energy<=3){ showEnergyWarning(3); return; }
+
+  clearHint();
+  state.isLocked=true;
+  state.energy-=3;
+  state.combo=0;
+  render();
+
+  const board=document.querySelector('.game-board');
+  if(!board){
+    state.isLocked=false;
+    return;
+  }
+
+  // 每次施法建立全新的動畫 DOM，確保第二次、第三次都從初始狀態播放。
+  const fx=document.createElement('div');
+  fx.id='meteor-runtime-v18';
+  fx.innerHTML=`
+    <div class="m18-meteor"></div>
+    <div class="m18-flash"></div>
+    <div class="m18-ring"></div>
+    <div class="m18-title">☄️ 隕石術</div>
+  `;
+  document.body.appendChild(fx);
+
+  const meteor=fx.querySelector('.m18-meteor');
+  const flash=fx.querySelector('.m18-flash');
+  const ring=fx.querySelector('.m18-ring');
+  const title=fx.querySelector('.m18-title');
+
+  // ① 蓄力
+  cells.forEach(c=>c.el.classList.add('meteor-charge'));
+  await new Promise(r=>setTimeout(r,420));
+
+  // ② 每次重新測量棋盤中心
+  const br=board.getBoundingClientRect();
+  const targetX=br.left+br.width/2;
+  const targetY=br.top+br.height/2;
+  fx.style.setProperty('--ix',targetX+'px');
+  fx.style.setProperty('--iy',targetY+'px');
+
+  // ③ 真正逐幀掉落
+  const startX=window.innerWidth/2;
+  const startY=-220;
+  const duration=2300;
+  const t0=performance.now();
+
+  await new Promise(resolve=>{
+    function frame(now){
+      const p=Math.min(1,(now-t0)/duration);
+      const e=1-Math.pow(1-p,1.58);
+      const x=startX+(targetX-startX)*e;
+      const y=startY+(targetY-startY)*e;
+      const scale=.48+.82*e;
+      meteor.style.left=x+'px';
+      meteor.style.top=y+'px';
+      meteor.style.opacity='1';
+      meteor.style.transform=`translate(-50%,-50%) rotate(35deg) scale(${scale})`;
+      if(p<1) requestAnimationFrame(frame); else resolve();
+    }
+    requestAnimationFrame(frame);
+  });
+
+  // ④ 精準撞擊棋盤中心
+  meteor.style.opacity='0';
+  flash.style.opacity='1';
+  ring.style.opacity='1';
+  title.style.opacity='1';
+
+  await new Promise(r=>setTimeout(r,70));
+
+  let removed=0;
+  for(let i=0;i<36;i++){
+    removed+=state.board[i]||0;
+    state.board[i]=0;
+    cells[i].el.classList.remove('meteor-charge');
+    cells[i].el.classList.add('m18-impact');
+  }
+  state.score+=removed*30+500;
+  render();
+
+  ring.style.transition='transform .82s cubic-bezier(.08,.72,.08,1),opacity .82s ease';
+  ring.style.transform='translate(-50%,-50%) scale(28)';
+  flash.style.transition='opacity .4s ease';
+  title.style.transition='opacity .45s ease,transform .5s ease';
+  flash.style.opacity='0';
+  title.style.opacity='0';
+  title.style.transform='translate(-50%,-50%) scale(1.16)';
+
+  spawnParticles(targetX,targetY,'#fff',80);
+  spawnParticles(targetX,targetY,'#ffb703',180);
+  spawnParticles(targetX,targetY,'#f43f5e',120);
+  spawnParticles(targetX,targetY,'#a78bfa',160);
+
+  await new Promise(r=>setTimeout(r,460));
+
+  // ⑤ 快速補滿
+  for(let i=0;i<36;i++){
+    state.board[i]=Math.floor(Math.random()*3)+1;
+    cells[i].el.classList.remove('m18-impact');
+  }
+  render();
+
+  cells.forEach(c=>{
+    c.el.classList.add('magic-refill');
+    setTimeout(()=>c.el.classList.remove('magic-refill'),220);
+  });
+
+  await new Promise(r=>setTimeout(r,240));
+  fx.remove();
+
+  state.isLocked=false;
+  saveData();
+  render();
+  if(state.energy<=0&&!hasPossibleMatch()) endGame();
+}
+
+function toggleDouble() {
+  if(state.isLocked) return;
+  if(state.energy<=2 && !state.doubleNext){ showEnergyWarning(2); return; }
+  if(state.doubleNext){ state.doubleNext=false; render(); return; }
+  if(state.energy<2) return;
+  state.energy-=2;
+  state.doubleNext=true;
+  SoundSystem.play('tap');
+  render();
+}
+function endGame() {
+  SoundSystem.play('gameover');
+  document.getElementById('final-score').innerText=state.score.toLocaleString();
+  document.getElementById('game-over-modal').classList.add('active');
 }
 
 function showHint() {
   clearHint();
-  // Find best group
-  let best=[], bestScore=0;
-  for(let i=0;i<25;i++) {
-    if(state.board[i]===0) continue;
-    const m=findMatches(i);
-    if(m.length>bestScore) { bestScore=m.length; best=m; }
-  }
-  if(best.length<2) return;
-  hintCells=best;
-  best.forEach(i=>cells[i].el.classList.add('hint-glow'));
-  hintTimeout=setTimeout(clearHint,2000);
-}
 
+  // ① 優先找目前已存在的 3+ 相鄰組。
+  let best=[], bestScore=0;
+  for(let i=0;i<36;i++){
+    if(!state.board[i]) continue;
+    const m=findMatches(i);
+    if(m.length>=3 && m.length>bestScore){
+      bestScore=m.length;
+      best=m;
+    }
+  }
+
+  // ② 如果目前沒有立即可消的組，搜尋「點哪一格後會形成 3+」。
+  let suggested=-1, suggestedGroup=[];
+  if(best.length<3){
+    for(let i=0;i<36;i++){
+      if(!state.board[i]) continue;
+      const original=state.board[i];
+      state.board[i]=original+1;
+      const m=findMatches(i);
+      state.board[i]=original;
+      if(m.length>=3){
+        suggested=i;
+        suggestedGroup=m;
+        break;
+      }
+    }
+  }
+
+  if(best.length>=3){
+    hintCells=best;
+    best.forEach(i=>cells[i].el.classList.add('hint-glow'));
+    const btn=document.getElementById('hint-btn');
+    btn.classList.add('hint-active');
+    setTimeout(()=>btn.classList.remove('hint-active'),1600);
+    hintTimeout=setTimeout(clearHint,2000);
+    return;
+  }
+
+  if(suggested>=0){
+    hintCells=suggestedGroup.length?suggestedGroup:[suggested];
+    hintCells.forEach(i=>cells[i].el.classList.add('hint-glow'));
+    cells[suggested].el.classList.add('hint-suggest');
+    const btn=document.getElementById('hint-btn');
+    btn.classList.add('hint-active');
+    setTimeout(()=>btn.classList.remove('hint-active'),1600);
+    hintTimeout=setTimeout(()=>{
+      cells[suggested]?.el.classList.remove('hint-suggest');
+      clearHint();
+    },2000);
+    showFeedback(suggested,'🎯 建議點這格',0);
+    return;
+  }
+
+  // ③ 完全沒有可形成合併的點擊，仍給玩家明確回饋，而非看起來「沒反應」。
+  const btn=document.getElementById('hint-btn');
+  btn.classList.add('hint-active');
+  setTimeout(()=>btn.classList.remove('hint-active'),400);
+  showFeedback(Math.floor(Math.random()*36),'沒有可用連鎖',0);
+}
 function clearHint() {
   if(hintTimeout) clearTimeout(hintTimeout);
   hintCells.forEach(i=>{ if(cells[i]) cells[i].el.classList.remove('hint-glow'); });
@@ -624,5 +2357,43 @@ function showFeedback(idx, pts, combo) {
 
 window.onload=init;
 </script>
+
+<!-- ☄️ 隕石術：全螢幕法術動畫 -->
+
+<!-- STABLE METEOR SPELL -->
+<div id="meteor-spell-stable">
+  <div class="ms-glow"></div>
+  <div class="ms-meteor"></div>
+  <div class="ms-flash"></div>
+  <div class="ms-ring"></div>
+  <div class="ms-title">☄️ 隕石術</div>
+</div>
+
+
+<div id="energy-warning-toast" aria-live="polite"></div>
+
 </body>
 </html>
+
+<style id="hint-button-fix">
+.btn-row{position:relative;z-index:50}
+#hint-btn{position:relative;z-index:51;pointer-events:auto;cursor:pointer;touch-action:manipulation}
+.game-board-wrapper{z-index:2}
+</style>
+
+<style id="hint-feedback-style">
+#hint-btn.hint-active{
+  transform:translateY(-2px) scale(1.05);
+  border-color:rgba(245,215,110,.75)!important;
+  box-shadow:0 0 22px rgba(245,215,110,.38),0 6px 0 #020617!important;
+}
+.cell.hint-suggest{
+  outline:3px solid #f5d76e;
+  box-shadow:0 0 0 5px rgba(245,215,110,.24),0 0 30px rgba(245,215,110,.7)!important;
+  animation:hintSuggestPulse .65s ease-in-out infinite alternate;
+}
+@keyframes hintSuggestPulse{
+  from{transform:scale(1)}
+  to{transform:scale(1.06)}
+}
+</style>
