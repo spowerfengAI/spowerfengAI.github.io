@@ -1494,15 +1494,15 @@ body::after{
     <span class="streak-label">🔥 STREAK</span>
     <div class="streak-timer"><div class="streak-fill" id="streak-fill"></div></div>
   </div>
-  <div class="power-row" style="grid-template-columns:1fr 1fr 1fr">
-    <button class="power-btn" id="bomb-btn" onclick="useBomb()">🔥 火球術 <small>2⚡</small></button>
-    <button class="power-btn" id="reroll-btn" onclick="useMeteor()">☄️ 隕石術 <small>3⚡</small></button>
-    <button class="power-btn" id="double-btn" onclick="toggleDouble()">⚡ 火力加倍 <small id="double-cost">2⚡</small></button>
-  </div>
-
-  
-  <div class="energy-bar-container">
-    <div class="energy-text"><span>⚡ 能量</span><span id="energy-count">5 / 5</span></div>
+  <div class="power-row spell-row">
+  <button class="power-btn spell-locked" id="skill-fireball" onclick="useFireballSkill()">🔥 火球術 <small>🔒 LV 5</small></button>
+  <button class="power-btn spell-locked" id="skill-double" onclick="toggleDoubleSkill()">⚡ 魔力加倍 <small>🔒 LV 10</small></button>
+  <button class="power-btn spell-locked" id="skill-missile" onclick="useMagicMissile()">🔮 魔法飛彈 <small>🔒 LV 15</small></button>
+  <button class="power-btn spell-locked" id="skill-dragon" onclick="useDragonBreath()">🐉 龍息術 <small>🔒 LV 20</small></button>
+  <button class="power-btn spell-locked" id="skill-meteor" onclick="useMeteor()">☄️ 隕石術 <small>🔒 LV 25</small></button>
+</div>
+<div class="energy-bar-container">
+    <div class="energy-text"><span>⚡ 能量</span><span id="energy-count">4 / 4</span></div>
     <div class="energy-pips" id="energy-pips"></div>
   </div>
   <div class="game-board-wrapper">
@@ -1623,7 +1623,7 @@ const SoundSystem = {
 const colorClasses = ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'];
 const cellColors = ['#ff6b9d','#4facfe','#43e97b','#fa709a','#a18cd1','#f093fb','#4facfe','#667eea','#f7971e','#f43f5e'];
 let state = {
-  board:[], score:0, energy:5, combo:0, isLocked:false, level:1, totalMerges:0,
+  board:[], score:0, energy:4, combo:0, isLocked:false, level:1, totalMerges:0,
   streak:0, doubleNext:false, missionBase:10,
   special:{},
   boss:{active:false,hp:100,maxHp:100,turns:0},
@@ -1637,37 +1637,79 @@ const cells = [];
 let hintTimeout = null;
 let hintCells = [];
 
+
+function getBoardSize(){
+  const lv=Math.floor((Number(state.totalMerges)||0)/10)+1;
+  if(lv>=30) return 8;
+  if(lv>=20) return 7;
+  if(lv>=10) return 6;
+  return 5;
+}
+function getBoardTotal(){ return getBoardSize()*getBoardSize(); }
+
 function init() {
   ['mousedown','touchstart'].forEach(e=>document.body.addEventListener(e,()=>SoundSystem.init(),{once:true}));
   buildPips();
-  const boardEl = document.getElementById('board');
-  boardEl.innerHTML = '';
-  cells.length = 0;
-  for(let i=0;i<36;i++) {
-    const cell = document.createElement('div');
-    cell.className = 'cell';
-    const span = document.createElement('span');
+  const boardEl=document.getElementById('board');
+  boardEl.innerHTML='';
+  cells.length=0;
+  for(let i=0;i<64;i++){
+    const cell=document.createElement('div');
+    cell.className='cell';
+    const span=document.createElement('span');
     cell.appendChild(span);
-    cell.addEventListener('click', ()=>handleCellClick(i));
+    cell.addEventListener('click',()=>handleCellClick(i));
     boardEl.appendChild(cell);
-    cells.push({el:cell, span});
+    cells.push({el:cell,span});
   }
   loadData();
-  state.inputQueue = [];
-  if(!state.board||state.board.length===0) resetGame();
-  else render(true);
-}
-
-function buildPips() {
-  const container = document.getElementById('energy-pips');
-  container.innerHTML = '';
-  for(let i=0;i<5;i++) {
-    const pip = document.createElement('div');
-    pip.className = 'pip';
-    pip.id = `pip-${i}`;
-    container.appendChild(pip);
+  state.inputQueue=[];
+  if(!Array.isArray(state.board)||state.board.length===0) resetGame();
+  else{
+    syncBoardSize();
+    normalizeEnergy();
+    render(true);
   }
 }
+
+
+function getMaxEnergy(){
+  const lv=Math.floor((Number(state.totalMerges)||0)/10)+1;
+  return Math.min(8,4+Math.floor((lv-1)/5));
+}
+function rebuildEnergyPips(){
+  const box=document.getElementById('energy-pips');
+  if(!box)return;
+  const max=getMaxEnergy();
+  box.innerHTML='';
+  for(let i=0;i<max;i++){
+    const pip=document.createElement('div');
+    pip.id=`pip-${i}`; pip.className='pip'+(i<state.energy?' active':'');
+    box.appendChild(pip);
+  }
+}
+
+function syncBoardSize(){
+  const n=getBoardSize();
+  const total=n*n;
+  const boardEl=document.getElementById('board');
+  if(!boardEl) return;
+  boardEl.style.setProperty('--board-size',n);
+  boardEl.style.gridTemplateColumns=`repeat(${n},minmax(0,1fr))`;
+  boardEl.style.gridTemplateRows=`repeat(${n},minmax(0,1fr))`;
+
+  // Preserve existing cells and resize logical board when level crosses a threshold.
+  if(!Array.isArray(state.board)) state.board=[];
+  if(state.board.length>total) state.board=state.board.slice(0,total);
+  while(state.board.length<total) state.board.push(Math.floor(Math.random()*4)+1);
+
+  for(let i=0;i<cells.length;i++){
+    const active=i<total;
+    cells[i].el.style.display=active?'flex':'none';
+    if(!active) cells[i].el.className='cell';
+  }
+}
+function buildPips(){ rebuildEnergyPips(); }
 
 function loadData() {
   const saved = localStorage.getItem('clickgame_v10');
@@ -1696,8 +1738,8 @@ function saveData() {
 
 function resetGame() {
   document.getElementById('game-over-modal').classList.remove('active');
-  state.board = Array(36).fill(0).map(()=>Math.floor(Math.random()*4)+1);
-  state.score=0; state.energy=5; state.combo=0; state.isLocked=false;
+  state.board = Array.from({length:getBoardTotal()},()=>Math.floor(Math.random()*4)+1);
+  state.score=0; state.energy=4; state.combo=0; state.isLocked=false;
   state.level=1; state.totalMerges=0;
   clearHint();
   saveData(); render(true);
@@ -1706,7 +1748,8 @@ function resetGame() {
 function getLevel(merges) { return Math.floor(merges/10)+1; }
 
 function render(full=false) {
-  state.board.forEach((val,i)=>{
+  syncBoardSize();
+  state.board.slice(0,getBoardTotal()).forEach((val,i)=>{
     const c=cells[i];
     let specialCls='';
     const cls = 'cell ' + (colorClasses[(val-1)%10]||'') + (state.boss.active && i===0 ? ' boss-cell' : '');
@@ -1720,46 +1763,33 @@ function render(full=false) {
   // Score
   const scoreEl = document.getElementById('score');
   scoreEl.innerText = state.score.toLocaleString();
-  // Energy pips
-  for(let i=0;i<5;i++) {
+  // Dynamic energy
+  const maxEnergy=getMaxEnergy();
+  const pipBox=document.getElementById('energy-pips');
+  if(pipBox && pipBox.children.length!==maxEnergy) rebuildEnergyPips();
+  for(let i=0;i<maxEnergy;i++){
     const pip=document.getElementById(`pip-${i}`);
     if(pip) pip.className='pip'+(i<state.energy?' active':'');
   }
-  document.getElementById('energy-count').innerText=`${state.energy} / 5`;
-  // Combo display
-  const comboEl=document.getElementById('combo-display');
-  const comboFill=document.getElementById('combo-fill');
-  comboEl.innerText=`x${Math.max(1,state.combo)}`;
-  comboFill.style.width=`${Math.min(state.combo/10*100,100)}%`;
-  if(state.combo>=5) comboEl.style.color='#f43f5e';
-  else if(state.combo>=3) comboEl.style.color='#fb923c';
-  else comboEl.style.color='#fbbf24';
-  // Boss / random event HUD
-  const bp=document.getElementById('boss-panel');
-  bp.style.display=state.boss.active?'block':'none';
-  document.getElementById('boss-progress').innerText=`${Math.max(0,state.boss.hp)} / ${state.boss.maxHp}`;
-  document.getElementById('boss-fill').style.width=`${Math.max(0,state.boss.hp/state.boss.maxHp*100)}%`;
-  const eb=document.getElementById('event-banner');
-  if(state.event){ eb.style.display='block'; eb.innerText=state.event; }
-  else eb.style.display='none';
+  document.getElementById('energy-count').innerText=`${state.energy} / ${maxEnergy}`;
 
-  // Mission / powerups
+  // Five skills with level unlocks.
   const lvNow=getLevel(state.totalMerges);
-  const missionGoal=8 + lvNow*2;
-  const missionDone=state.totalMerges % missionGoal;
-  document.getElementById('challenge-progress').innerText=`${missionDone} / ${missionGoal}`;
-  document.getElementById('challenge-fill').style.width=`${Math.min(100,missionDone/missionGoal*100)}%`;
-  document.getElementById('bomb-btn').disabled=false;
-  document.getElementById('reroll-btn').disabled=false;
-  document.getElementById('double-btn').disabled=false;
-  document.getElementById('bomb-btn').classList.toggle('spell-unavailable', state.energy<=2 || state.isLocked);
-  document.getElementById('reroll-btn').classList.toggle('spell-unavailable', state.energy<=3 || state.isLocked);
-  const doubleBtn=document.getElementById('double-btn');
-  doubleBtn.classList.toggle('spell-unavailable', (state.energy<=2 && !state.doubleNext) || state.isLocked);
-  doubleBtn.classList.toggle('double-active',!!state.doubleNext);
-  document.getElementById('double-cost').innerText=state.doubleNext?'已啟用：下一次合併 ×2':'消耗 2 能量';
-  document.getElementById('streak-fill').style.width=state.streak>0 ? `${Math.max(0,Math.min(100,(streakUntil-Date.now())/3500*100))}%` : '0%';
-
+  const skillMeta=[
+    ['skill-fireball',5,'🔥 火球術',2],
+    ['skill-double',10,'⚡ 魔力加倍',2],
+    ['skill-missile',15,'🔮 魔法飛彈',2],
+    ['skill-dragon',20,'🐉 龍息術',3],
+    ['skill-meteor',25,'☄️ 隕石術',5]
+  ];
+  skillMeta.forEach(([id,unlock,name,cost])=>{
+    const b=document.getElementById(id);
+    if(!b)return;
+    const unlocked=lvNow>=unlock;
+    b.classList.toggle('spell-locked',!unlocked);
+    b.classList.toggle('spell-unavailable',unlocked && (state.energy<=cost || state.isLocked));
+    b.querySelector('small').innerText=unlocked?`${cost}⚡`:`🔒 LV ${unlock}`;
+  });
   // Level
   const lv=getLevel(state.totalMerges);
   document.getElementById('level-badge').innerText=`LV ${lv}`;
@@ -1804,7 +1834,16 @@ async function processMatches(startIdx) {
     const matches=findMatches(targetIdx);
     if(matches.length>=3) {
       state.combo++;
+      const oldLv=Math.floor((Number(state.totalMerges)||0)/10)+1;
       state.totalMerges++;
+      syncBoardSize();
+      buildPips();
+
+      const newLv=Math.floor((Number(state.totalMerges)||0)/10)+1;
+      const oldCap=4+Math.floor((oldLv-1)/5);
+      const newCap=4+Math.floor((newLv-1)/5);
+      if(newCap>oldCap) state.energy=newCap;
+
       const bc=Number(localStorage.getItem('cg_best_combo'))||0;
       if(state.combo>bc) { localStorage.setItem('cg_best_combo',state.combo); document.getElementById('best-combo').innerText=state.combo; }
 
@@ -1831,7 +1870,7 @@ async function processMatches(startIdx) {
         showFeedback(targetIdx,`👹 -${dmg}`,0);
         if(state.boss.hp<=0){
           state.score+=1000;
-          state.energy=Math.min(5,state.energy+2);
+          state.energy=Math.min(getMaxEnergy(), state.energy + 2);
           state.boss.active=false;
           state.totalMerges+=3;
           showFeedback(targetIdx,'👑 BOSS DEFEATED +1000',0);
@@ -1840,7 +1879,7 @@ async function processMatches(startIdx) {
         }
       }
 
-      state.energy=Math.min(5,state.energy+1);
+      state.energy=Math.min(getMaxEnergy(), state.energy + 1);
       SoundSystem.play('match',state.combo);
 
       const scoreEl=document.getElementById('score');
@@ -1854,7 +1893,7 @@ async function processMatches(startIdx) {
       showFeedback(targetIdx,`+${ptsAdded}`,state.combo);
 
       if(state.totalMerges % (8 + getLevel(state.totalMerges)*2) === 0) {
-        state.energy=Math.min(5,state.energy+2);
+        state.energy=Math.min(getMaxEnergy(), state.energy + 2);
         showFeedback(targetIdx,'🎯 任務達成 +2⚡',0);
       }
       if(state.combo>=8) {
@@ -1909,7 +1948,7 @@ cells[targetIdx].el.classList.add('target-pulse');
       await applyGravity();
 
       targetIdx=-1;
-      for(let i=0;i<36;i++) {
+      for(let i=0;i<getBoardTotal();i++) {
         if(state.board[i]>0 && findMatches(i).length>=3){
           targetIdx=i;
           break;
@@ -1921,63 +1960,60 @@ cells[targetIdx].el.classList.add('target-pulse');
   }
 }
 
-function findMatches(idx) {
-  const val = state.board[idx];
-  if (!val) return [];
-
-  // 只允許上下左右相鄰；斜角不算連線。
-  const queue = [idx];
-  const result = [];
-  const visited = new Set([idx]);
-
-  while (queue.length) {
-    const curr = queue.shift();
+function findMatches(idx){
+  const n=getBoardSize();
+  const val=state.board[idx];
+  if(!val) return [];
+  const queue=[idx], result=[], visited=new Set([idx]);
+  while(queue.length){
+    const curr=queue.shift();
     result.push(curr);
-
-    const r = Math.floor(curr / 6);
-    const c = curr % 6;
-    const neighbors = [
-      [r - 1, c], [r + 1, c],
-      [r, c - 1], [r, c + 1]
-    ];
-
-    for (const [nr, nc] of neighbors) {
-      if (nr < 0 || nr >= 6 || nc < 0 || nc >= 6) continue;
-      const ni = nr * 6 + nc;
-      if (!visited.has(ni) && state.board[ni] === val) {
-        visited.add(ni);
-        queue.push(ni);
+    const r=Math.floor(curr/n),c=curr%n;
+    const neighbors=[[r-1,c],[r+1,c],[r,c-1],[r,c+1]];
+    for(const [nr,nc] of neighbors){
+      if(nr<0||nr>=n||nc<0||nc>=n) continue;
+      const ni=nr*n+nc;
+      if(!visited.has(ni)&&state.board[ni]===val){
+        visited.add(ni);queue.push(ni);
       }
     }
   }
   return result;
 }
-
-async function applyGravity() {
+async function applyGravity(){
+  const n=getBoardSize();
+  syncBoardSize();
   let dropped=false;
-  for(let c=0;c<6;c++) {
+  for(let c=0;c<n;c++){
     let emptyRow=-1;
-    for(let r=5;r>=0;r--) {
-      const idx=r*6+c;
-      if(state.board[idx]===0) { if(emptyRow===-1) emptyRow=r; }
-      else if(emptyRow!==-1) {
-        state.board[emptyRow*6+c]=state.board[idx]; state.board[idx]=0;
-        if(state.special[idx]) { state.special[emptyRow*6+c]=state.special[idx]; delete state.special[idx]; }
-        cells[emptyRow*6+c].el.classList.add('dropping'); emptyRow--; dropped=true;
+    for(let r=n-1;r>=0;r--){
+      const idx=r*n+c;
+      if(state.board[idx]===0){if(emptyRow===-1)emptyRow=r;}
+      else if(emptyRow!==-1){
+        state.board[emptyRow*n+c]=state.board[idx];
+        state.board[idx]=0;
+        cells[emptyRow*n+c]?.el.classList.add('dropping');
+        emptyRow--;dropped=true;
       }
     }
-    for(let r=emptyRow;r>=0&&r!==-1;r--) {
-      state.board[r*6+c]=Math.floor(Math.random()*4)+1;
-      delete state.special[r*6+c];
-      cells[r*6+c].el.classList.add('dropping'); dropped=true;
+    for(let r=emptyRow;r>=0;r--){
+      const idx=r*n+c;
+      state.board[idx]=Math.floor(Math.random()*4)+1;
+      cells[idx]?.el.classList.add('dropping');
+      dropped=true;
     }
   }
   render();
-  if(dropped) { await new Promise(r=>setTimeout(r,220)); cells.forEach(c=>c.el.classList.remove('dropping')); }
+  if(dropped){
+    await new Promise(r=>setTimeout(r,220));
+    cells.forEach(c=>c.el.classList.remove('dropping'));
+  }
 }
 
-function hasPossibleMatch() {
-  for(let i=0;i<36;i++) { if(state.board[i]>0&&findMatches(i).length>=3) return true; }
+function hasPossibleMatch(){
+  for(let i=0;i<getBoardTotal();i++){
+    if(state.board[i]>0&&findMatches(i).length>=3)return true;
+  }
   return false;
 }
 
@@ -2026,7 +2062,7 @@ async function triggerSpecial(idx,type,manual=false,seen=new Set(),forcedValue=n
   }
 
   state.score += targets.length * (type==='rainbow' ? Math.max(1,value)*20 : 20);
-  if(manual) state.energy=Math.min(5,state.energy+1);
+  if(manual) state.energy=Math.min(getMaxEnergy(), state.energy + 1);
   SoundSystem.play('match',Math.min(8,state.combo+2));
   render();
 
@@ -2044,7 +2080,7 @@ async function resolveAutoMatches(){
   let guard=0;
   while(guard++<20){
     let idx=-1;
-    for(let i=0;i<36;i++){
+    for(let i=0;i<getBoardTotal();i++){
       if(state.board[i] && findMatches(i).length>=3){
         idx=i;
         break;
@@ -2087,56 +2123,95 @@ function showEnergyWarning(cost){
   energyToastTimer=setTimeout(()=>el.classList.remove('show'),1400);
 }
 
-function useBomb() {
-  if(state.isLocked) return;
-  if(state.energy<=2){ showEnergyWarning(2); return; }
-  clearHint();
+function useBomb(){
+  if(state.isLocked)return;
+  if(getLevel(state.totalMerges)<5){showSkillMessage('🔒 火球術需要 LV 5');return;}
+  if(state.energy<=2){showSkillMessage('⚡ 能量不足：需要 2⚡，施法後至少保留 1⚡');return;}
+
   state.isLocked=true;
   state.energy-=2;
+  clearHint();
 
-  // 火球術：選取一格作為落點，焚燒該格周圍 3×3。
-  const center=Math.floor(Math.random()*36);
-  const r=Math.floor(center/6), c=center%6;
+  const center=Math.floor(Math.random()*getBoardTotal());
+  const n=getBoardSize(); const rr=Math.floor(center/n),cc=center%n;
   const targets=[];
-  for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
-    const nr=r+dr,nc=c+dc;
-    if(nr>=0&&nr<6&&nc>=0&&nc<6){
-      const i=nr*6+nc;
-      if(state.board[i]>0) targets.push(i);
-    }
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+    const r=rr+dr,c=cc+dc;
+    if(r>=0&&r<n&&c>=0&&c<n)targets.push(r*n+c);
   }
 
-  const rect=cells[center].el.getBoundingClientRect();
-  const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
-  spawnParticles(cx,cy,'#ff7a18',55);
-  spawnParticles(cx,cy,'#ffd166',28);
+  const targetRect=cells[center].el.getBoundingClientRect();
+  const tx=targetRect.left+targetRect.width/2;
+  const ty=targetRect.top+targetRect.height/2;
 
-  targets.forEach(i=>{
-    state.board[i]=0;
-    cells[i].el.classList.add('target-pulse');
+  const fx=document.createElement('div');
+  fx.className='spell-runtime fireball-vfx';
+  fx.innerHTML='<div class="fireball-caster">✦</div><div class="fireball-projectile">🔥</div><div class="fireball-glow"></div>';
+  document.body.appendChild(fx);
+
+  const projectile=fx.querySelector('.fireball-projectile');
+  const glow=fx.querySelector('.fireball-glow');
+  projectile.style.left=(innerWidth/2)+'px';
+  projectile.style.top=(innerHeight+80)+'px';
+  projectile.style.transform='translate(-50%,-50%) scale(.55) rotate(-15deg)';
+  projectile.style.opacity='1';
+  glow.style.left=(innerWidth/2)+'px';
+  glow.style.top=(innerHeight+40)+'px';
+  glow.style.opacity='.2';
+
+  // 火球從螢幕下方高速飛向棋盤目標。
+  requestAnimationFrame(()=>{
+    projectile.style.transition='left .72s cubic-bezier(.12,.82,.18,1),top .72s cubic-bezier(.12,.82,.18,1),transform .72s ease';
+    projectile.style.left=tx+'px';
+    projectile.style.top=ty+'px';
+    projectile.style.transform='translate(-50%,-50%) scale(1.18) rotate(18deg)';
+    glow.style.transition='left .72s ease,top .72s ease,opacity .72s ease';
+    glow.style.left=tx+'px';
+    glow.style.top=ty+'px';
+    glow.style.opacity='.9';
   });
-  const removed=targets.reduce((sum,i)=>sum+state.board[i],0);
-  state.score += removed*20 + targets.length*10;
-  state.combo=0;
-  SoundSystem.play('fireball');
-  render();
 
-  setTimeout(()=>targets.forEach(i=>cells[i].el.classList.remove('target-pulse')),420);
+  SoundSystem.play('fireball');
+
+  setTimeout(()=>{
+    // 撞擊瞬間先產生大爆炸，再清除 3×3。
+    skillFlash(tx,ty);
+    spawnParticles(tx,ty,'#fff',35);
+    spawnParticles(tx,ty,'#ffd166',70);
+    spawnParticles(tx,ty,'#ff7a18',90);
+
+    const ring=document.createElement('div');
+    ring.className='fireball-impact-ring';
+    ring.style.left=tx+'px';
+    ring.style.top=ty+'px';
+    fx.appendChild(ring);
+
+    targets.forEach(i=>{
+      if(state.board[i])state.board[i]=0;
+      cells[i].el.classList.add('fireball-hit');
+      setTimeout(()=>cells[i].el.classList.remove('fireball-hit'),420);
+    });
+
+    state.score+=targets.length*30;
+    render();
+  },760);
+
   setTimeout(async()=>{
     await applyGravity();
+    fx.remove();
     state.isLocked=false;
-    saveData(); render();
-    if(state.energy<=0&&!hasPossibleMatch()) endGame();
-  },480);
+    saveData();
+    render();
+  },1220);
 }
 
 async function useMeteor(){
   if(state.isLocked) return;
-  if(state.energy<=3){ showEnergyWarning(3); return; }
+  if(state.energy<=5){ showEnergyWarning(5); return; }
 
   clearHint();
   state.isLocked=true;
-  state.energy-=3;
+  state.energy-=5;
   state.combo=0;
   render();
 
@@ -2204,7 +2279,7 @@ async function useMeteor(){
   await new Promise(r=>setTimeout(r,70));
 
   let removed=0;
-  for(let i=0;i<36;i++){
+  for(let i=0;i<getBoardTotal();i++){
     removed+=state.board[i]||0;
     state.board[i]=0;
     cells[i].el.classList.remove('meteor-charge');
@@ -2229,7 +2304,7 @@ async function useMeteor(){
   await new Promise(r=>setTimeout(r,460));
 
   // ⑤ 快速補滿
-  for(let i=0;i<36;i++){
+  for(let i=0;i<getBoardTotal();i++){
     state.board[i]=Math.floor(Math.random()*3)+1;
     cells[i].el.classList.remove('m18-impact');
   }
@@ -2259,10 +2334,291 @@ function toggleDouble() {
   SoundSystem.play('tap');
   render();
 }
-function endGame() {
-  SoundSystem.play('gameover');
-  document.getElementById('final-score').innerText=state.score.toLocaleString();
-  document.getElementById('game-over-modal').classList.add('active');
+
+
+function skillFlash(x,y){
+  let f=document.createElement('div');
+  f.className='skill-flash';
+  f.style.setProperty('--sx',x+'px');
+  f.style.setProperty('--sy',y+'px');
+  document.body.appendChild(f);
+  requestAnimationFrame(()=>f.classList.add('skill-flash-on'));
+  setTimeout(()=>f.remove(),260);
+}
+
+function showSkillMessage(msg){
+  const el=document.getElementById('energy-warning-toast');
+  if(!el)return;
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(window._skillMsgTimer);
+  window._skillMsgTimer=setTimeout(()=>el.classList.remove('show'),1500);
+}
+function skillGate(level,name,cost){
+  if(state.isLocked)return false;
+  if(getLevel(state.totalMerges)<level){showSkillMessage(`🔒 ${name} 需要 LV ${level}`);return false;}
+  if(state.energy<=cost){showSkillMessage(`⚡ 能量不足：需要 ${cost}⚡，施法後至少保留 1⚡`);return false;}
+  return true;
+}
+async function useFireballSkill(){
+  if(state.isLocked)return;
+  if(getLevel(state.totalMerges)<5){showSkillMessage('🔒 火球術需要 LV 5');return;}
+  if(state.energy<=2){showSkillMessage('⚡ 能量不足：需要 2⚡，施法後至少保留 1⚡');return;}
+
+  state.isLocked=true;
+  state.energy-=2;
+  state.combo=0;
+  clearHint();
+
+  const center=Math.floor(Math.random()*getBoardTotal());
+  const n=getBoardSize(); const rr=Math.floor(center/n),cc=center%n;
+  const targets=[];
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+    const r=rr+dr,c=cc+dc;
+    if(r>=0&&r<n&&c>=0&&c<n)targets.push(r*n+c);
+  }
+
+  const rect=cells[center].el.getBoundingClientRect();
+  const tx=rect.left+rect.width/2;
+  const ty=rect.top+rect.height/2;
+
+  const fx=document.createElement('div');
+  fx.className='spell-runtime fireball-vfx-v4';
+  fx.innerHTML=`
+    <div class="fb-caster">✦</div>
+    <div class="fb-trail"></div>
+    <div class="fb-projectile">🔥</div>
+    <div class="fb-impact"></div>
+  `;
+  document.body.appendChild(fx);
+
+  const projectile=fx.querySelector('.fb-projectile');
+  const trail=fx.querySelector('.fb-trail');
+
+  // 從螢幕下方真正飛向棋盤指定格。
+  const sx=innerWidth/2, sy=innerHeight+100;
+  projectile.style.left=sx+'px';
+  projectile.style.top=sy+'px';
+  trail.style.left=sx+'px';
+  trail.style.top=(sy-40)+'px';
+
+  await new Promise(r=>requestAnimationFrame(()=>{
+    projectile.style.transition='left .9s cubic-bezier(.12,.80,.18,1),top .9s cubic-bezier(.12,.80,.18,1),transform .9s cubic-bezier(.12,.80,.18,1)';
+    trail.style.transition='left .9s ease,top .9s ease,opacity .9s ease';
+    projectile.style.left=tx+'px';
+    projectile.style.top=ty+'px';
+    projectile.style.transform='translate(-50%,-50%) rotate(22deg) scale(1.2)';
+    projectile.style.opacity='1';
+    trail.style.left=tx+'px';
+    trail.style.top=ty+'px';
+    trail.style.opacity='.95';
+    r();
+  }));
+
+  await new Promise(r=>setTimeout(r,120));
+
+  // 撞擊動畫。
+  const impact=fx.querySelector('.fb-impact');
+  impact.style.left=tx+'px';
+  impact.style.top=ty+'px';
+  impact.classList.add('fb-impact-active');
+
+  spawnParticles(tx,ty,'#fff',35);
+  spawnParticles(tx,ty,'#ffd166',80);
+  spawnParticles(tx,ty,'#ff7a18',100);
+
+  for(const i of targets){
+    state.board[i]=0;
+    cells[i].el.classList.add('fireball-hit-v4');
+  }
+  state.score+=targets.length*30;
+  render();
+
+  await new Promise(r=>setTimeout(r,430));
+  cells.forEach(c=>c.el.classList.remove('fireball-hit-v4'));
+  await applyGravity();
+
+  fx.remove();
+  state.isLocked=false;
+  saveData();
+  render();
+  if(state.energy<=0&&!hasPossibleMatch())endGame();
+}
+function toggleDoubleSkill(){
+  if(state.isLocked)return;
+  if(getLevel(state.totalMerges)<10){showSkillMessage('🔒 魔力加倍需要 LV 10');return;}
+  if(state.doubleNext){state.doubleNext=false;render();saveData();return;}
+  if(state.energy<=2){showSkillMessage('⚡ 能量不足：需要 2⚡，施法後至少保留 1⚡');return;}
+  state.energy-=2;state.doubleNext=true;SoundSystem.play('tap');render();saveData();
+}
+async function useMagicMissile(){
+  if(state.isLocked)return;
+  if(getLevel(state.totalMerges)<15){showSkillMessage('🔒 魔法飛彈需要 LV 15');return;}
+  if(state.energy<=2){showSkillMessage('⚡ 能量不足：需要 2⚡，施法後至少保留 1⚡');return;}
+
+  state.isLocked=true;
+  state.energy-=2;
+  clearHint();
+
+  // 隨機挑選場上最多 8 個「任意號碼」方塊。
+  const candidates=state.board.map((v,i)=>v>0?i:-1).filter(i=>i>=0);
+  candidates.sort(()=>Math.random()-.5);
+  const targets=candidates.slice(0,Math.min(8,candidates.length));
+
+  const fx=document.createElement('div');
+  fx.className='spell-runtime missile-vfx';
+  fx.innerHTML='<div class="missile-gate"></div><div class="missile-caster">✦</div>';
+  document.body.appendChild(fx);
+
+  const gate=fx.querySelector('.missile-gate');
+  gate.style.left=(innerWidth/2)+'px';
+  gate.style.top=(innerHeight*.76)+'px';
+  gate.style.opacity='.9';
+
+  for(let k=0;k<targets.length;k++){
+    const idx=targets[k];
+    const rect=cells[idx].el.getBoundingClientRect();
+    const tx=rect.left+rect.width/2;
+    const ty=rect.top+rect.height/2;
+
+    const bolt=document.createElement('div');
+    bolt.className='magic-missile-bolt-v2';
+    bolt.innerHTML='<span></span>';
+    bolt.style.left=(innerWidth*.5 + (k%3-1)*30)+'px';
+    bolt.style.top=(innerHeight+80)+'px';
+    bolt.style.transform='translate(-50%,-50%) rotate(-15deg) scale(.4)';
+    fx.appendChild(bolt);
+
+    await new Promise(resolve=>requestAnimationFrame(()=>{
+      bolt.style.transition='left .48s cubic-bezier(.12,.82,.2,1),top .48s cubic-bezier(.12,.82,.2,1),transform .48s ease';
+      bolt.style.left=tx+'px';
+      bolt.style.top=ty+'px';
+      bolt.style.transform='translate(-50%,-50%) rotate(-10deg) scale(1)';
+      resolve();
+    }));
+
+    await new Promise(r=>setTimeout(r,60));
+    state.board[idx]=0;
+    cells[idx].el.classList.add('missile-hit-v2');
+    skillFlash(tx,ty);
+    spawnParticles(tx,ty,'#67e8f9',22);
+    spawnParticles(tx,ty,'#a78bfa',12);
+    setTimeout(()=>cells[idx].el.classList.remove('missile-hit-v2'),320);
+  }
+
+  state.score+=targets.length*45;
+  render();
+  await new Promise(r=>setTimeout(r,160));
+  await applyGravity();
+  fx.remove();
+
+  state.isLocked=false;
+  saveData();
+  render();
+}
+async function useDragonBreath(){
+  if(state.isLocked)return;
+  if(getLevel(state.totalMerges)<20){showSkillMessage('🔒 龍息術需要 LV 20');return;}
+  if(state.energy<=5){showSkillMessage('⚡ 能量不足：需要 5⚡，施法後至少保留 1⚡');return;}
+
+  state.isLocked=true;
+  state.energy-=3;
+  clearHint();
+
+  const startCol=Math.floor(Math.random()*4);
+  const cols=[startCol,startCol+1,startCol+2];
+
+  const board=document.querySelector('.game-board');
+  const br=board.getBoundingClientRect();
+  const n=getBoardSize(); const x=br.left+br.width*(startCol+1.5)/n;
+
+  const fx=document.createElement('div');
+  fx.className='spell-runtime dragon-vfx';
+  fx.innerHTML=`
+    <div class="dragon-rune">⟐ ◇ ⟐</div>
+    <div class="dragon-caster">🐉</div>
+    <div class="dragon-fire-core"></div>
+    <div class="dragon-embers"></div>
+  `;
+  document.body.appendChild(fx);
+
+  const rune=fx.querySelector('.dragon-rune');
+  const caster=fx.querySelector('.dragon-caster');
+  const core=fx.querySelector('.dragon-fire-core');
+
+  rune.style.left=x+'px';
+  rune.style.top=(br.top+br.height+35)+'px';
+  caster.style.left=x+'px';
+  caster.style.top=(innerHeight+70)+'px';
+  core.style.left=x+'px';
+  core.style.top=(innerHeight+80)+'px';
+  core.style.width=Math.max(95,br.width*(3/getBoardSize()))+'px';
+  core.style.height=Math.min(innerHeight*.92,br.top+br.height+120)+'px';
+
+  requestAnimationFrame(()=>{
+    rune.classList.add('dragon-rune-active');
+    caster.classList.add('dragon-caster-active');
+    core.classList.add('dragon-fire-active');
+  });
+
+  // 先讓龍息從畫面底部衝到棋盤。
+  await new Promise(r=>setTimeout(r,720));
+
+  let removed=0;
+  for(let rr=0;rr<6;rr++){
+    for(const cc of cols){
+      const idx=rr*6+cc;
+      removed+=state.board[idx]||0;
+      state.board[idx]=0;
+      cells[idx].el.classList.add('dragon-hit-v2');
+      const cr=cells[idx].el.getBoundingClientRect();
+      spawnParticles(cr.left+cr.width/2,cr.top+cr.height/2,'#fb923c',10);
+      setTimeout(()=>cells[idx].el.classList.remove('dragon-hit-v2'),420);
+    }
+  }
+
+  state.score += removed*28;
+  render();
+
+  await new Promise(r=>setTimeout(r,220));
+  await applyGravity();
+
+  fx.remove();
+  state.isLocked=false;
+  saveData();
+  render();
+  if(state.energy<=0&&!hasPossibleMatch()) endGame();
+}
+
+function endGame(){
+  if(state.isLocked) return;
+  state.isLocked=true;
+  const modal=document.getElementById('game-over-modal');
+  if(modal) modal.classList.add('active');
+  const final=document.getElementById('final-score');
+  if(final) final.innerText=state.score.toLocaleString();
+
+  // 能量歸 0：短暫顯示結算後自動重新開始。
+  if(state.energy<=0){
+    clearTimeout(window._energyRestartTimer);
+    window._energyRestartTimer=setTimeout(()=>{
+      if(modal) modal.classList.remove('active');
+      state.board=Array.from({length:getBoardTotal()},()=>Math.floor(Math.random()*4)+1);
+      state.score=0;
+      state.energy=4;
+      state.combo=0;
+      state.isLocked=false;
+      state.level=1;
+      state.totalMerges=0;
+      state.streak=0;
+      state.doubleNext=false;
+      state.special={};
+      clearHint();
+      normalizeEnergy();
+      saveData();
+      render(true);
+    },900);
+  }
 }
 
 function showHint() {
@@ -2270,7 +2626,7 @@ function showHint() {
 
   // ① 優先找目前已存在的 3+ 相鄰組。
   let best=[], bestScore=0;
-  for(let i=0;i<36;i++){
+  for(let i=0;i<getBoardTotal();i++){
     if(!state.board[i]) continue;
     const m=findMatches(i);
     if(m.length>=3 && m.length>bestScore){
@@ -2282,7 +2638,7 @@ function showHint() {
   // ② 如果目前沒有立即可消的組，搜尋「點哪一格後會形成 3+」。
   let suggested=-1, suggestedGroup=[];
   if(best.length<3){
-    for(let i=0;i<36;i++){
+    for(let i=0;i<getBoardTotal();i++){
       if(!state.board[i]) continue;
       const original=state.board[i];
       state.board[i]=original+1;
@@ -2325,7 +2681,7 @@ function showHint() {
   const btn=document.getElementById('hint-btn');
   btn.classList.add('hint-active');
   setTimeout(()=>btn.classList.remove('hint-active'),400);
-  showFeedback(Math.floor(Math.random()*36),'沒有可用連鎖',0);
+  showFeedback(Math.floor(Math.random()*getBoardTotal()),'沒有可用連鎖',0);
 }
 function clearHint() {
   if(hintTimeout) clearTimeout(hintTimeout);
@@ -2524,6 +2880,367 @@ body{
   .power-btn{font-size:.72rem;padding:9px 3px}
   .power-btn small{font-size:.52rem}
   .game-board-wrapper{padding:6px!important}
+}
+
+
+.spell-row{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:7px!important;width:100%}
+.spell-row .power-btn{min-width:0;padding:9px 4px;font-size:.70rem;line-height:1.12}
+.spell-row .power-btn small{font-size:.50rem}
+.spell-locked{opacity:.40;filter:grayscale(.6);cursor:not-allowed!important}
+.spell-unavailable{opacity:.48;filter:saturate(.6);cursor:not-allowed!important}
+.spell-runtime{position:fixed;inset:0;z-index:2147483646;pointer-events:none;overflow:hidden}
+.magic-missile-bolt{position:fixed;width:18px;height:58px;border-radius:50%;background:linear-gradient(to top,#0ea5e9,#67e8f9,#fff);box-shadow:0 0 18px #67e8f9,0 0 42px #8b5cf6;transition:left .55s cubic-bezier(.15,.7,.2,1),top .55s cubic-bezier(.15,.7,.2,1);transform:translate(-50%,-50%) rotate(-35deg)}
+.missile-hit{animation:missileHit .25s ease-out both!important}
+@keyframes missileHit{45%{transform:scale(1.25);filter:brightness(2)}100%{transform:scale(.35);opacity:.05}}
+.dragon-breath{position:fixed;transform:translateX(-50%);border-radius:50%;opacity:0;background:linear-gradient(to top,rgba(255,255,255,.12),rgba(251,191,36,.9) 25%,rgba(249,115,22,.75) 55%,rgba(239,68,68,.35) 78%,transparent);filter:blur(5px);box-shadow:0 0 26px #fb923c,0 0 60px #ef4444;transition:top .62s cubic-bezier(.18,.75,.2,1),opacity .62s ease}
+.dragon-hit{animation:dragonHit .34s ease-out both!important}
+@keyframes dragonHit{35%{filter:brightness(2.8);transform:scale(1.08)}100%{opacity:0;transform:scale(.55)}}
+@media(max-width:600px){
+  .spell-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .spell-row #skill-meteor{grid-column:1/-1}
+}
+
+
+/* ✨ 魔法飛彈 V2 */
+.missile-vfx{position:fixed;inset:0;z-index:2147483646;pointer-events:none;overflow:hidden}
+.missile-gate{
+  position:fixed;width:72px;height:72px;transform:translate(-50%,-50%) scale(.5);
+  border:2px solid rgba(103,232,249,.82);border-radius:50%;opacity:.0;
+  box-shadow:0 0 18px rgba(103,232,249,.8),0 0 40px rgba(139,92,246,.55),inset 0 0 20px rgba(103,232,249,.25);
+}
+.missile-gate::before{
+  content:'✦';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  color:#fff;font-size:26px;text-shadow:0 0 12px #67e8f9,0 0 25px #8b5cf6
+}
+.missile-caster{position:fixed;left:50%;top:76%;color:#67e8f9;font-size:42px;opacity:.7;text-shadow:0 0 18px #67e8f9,0 0 40px #8b5cf6}
+.magic-missile-bolt-v2{
+  position:fixed;width:24px;height:76px;border-radius:50%;
+  background:radial-gradient(ellipse at 50% 15%,#fff 0 8%,#dffbff 20%,#67e8f9 48%,#2563eb 74%,#7c3aed 100%);
+  box-shadow:0 0 15px #fff,0 0 30px #67e8f9,0 0 56px #8b5cf6;
+  will-change:left,top,transform,filter;
+}
+.magic-missile-bolt-v2::before{
+  content:'';position:absolute;left:50%;bottom:65%;width:48px;height:150px;
+  transform:translateX(-50%);background:linear-gradient(to top,rgba(103,232,249,.6),rgba(139,92,246,.2),transparent);
+  filter:blur(5px);border-radius:50%
+}
+.missile-hit-v2{animation:missileHitV2 .32s cubic-bezier(.2,.8,.2,1) both!important}
+@keyframes missileHitV2{
+  0%{transform:scale(1);filter:brightness(1)}
+  30%{transform:scale(1.22);filter:brightness(2.5);box-shadow:0 0 34px #67e8f9,0 0 55px #a78bfa}
+  100%{transform:scale(.32);opacity:.1;filter:brightness(3)}
+}
+
+/* 🐉 龍息術 V2 */
+.dragon-vfx{position:fixed;inset:0;z-index:2147483646;pointer-events:none;overflow:hidden}
+.dragon-rune{
+  position:fixed;transform:translate(-50%,-50%) scale(.25);opacity:0;
+  color:#fde68a;font-size:22px;letter-spacing:8px;text-shadow:0 0 12px #fb923c,0 0 30px #a855f7;
+}
+.dragon-rune-active{animation:dragonRuneV2 .72s ease-out both}
+@keyframes dragonRuneV2{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.25) rotate(-25deg)}
+  35%{opacity:1}
+  100%{opacity:.85;transform:translate(-50%,-50%) scale(1.45) rotate(0)}
+}
+.dragon-caster{
+  position:fixed;transform:translate(-50%,-50%) scale(.7);opacity:0;
+  font-size:74px;filter:drop-shadow(0 0 18px #fb923c) drop-shadow(0 0 42px #ef4444)
+}
+.dragon-caster-active{animation:dragonCasterV2 .72s cubic-bezier(.15,.82,.2,1) both}
+@keyframes dragonCasterV2{
+  0%{top:110%;opacity:0;transform:translate(-50%,-50%) scale(.55)}
+  75%{opacity:1}
+  100%{top:84%;opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+.dragon-fire-core{
+  position:fixed;transform:translateX(-50%);opacity:0;border-radius:50%;
+  background:
+    radial-gradient(ellipse at 50% 20%,rgba(255,255,255,.75),rgba(253,230,138,.74) 16%,rgba(251,146,60,.80) 38%,rgba(239,68,68,.45) 64%,transparent 86%);
+  box-shadow:0 0 28px #fb923c,0 0 60px #ef4444,0 0 100px rgba(192,132,252,.55);
+  filter:blur(5px)
+}
+.dragon-fire-active{animation:dragonFireV2 .72s cubic-bezier(.18,.75,.2,1) both}
+@keyframes dragonFireV2{
+  0%{top:112%;opacity:0;transform:translateX(-50%) scaleY(.2)}
+  30%{opacity:.9}
+  100%{top:var(--dragon-end,10%);opacity:.95;transform:translateX(-50%) scaleY(1)}
+}
+.dragon-embers{
+  position:absolute;inset:0;opacity:.75;
+  background-image:
+    radial-gradient(circle,rgba(253,230,138,.95) 0 2px,transparent 3px),
+    radial-gradient(circle,rgba(251,146,60,.75) 0 2px,transparent 4px);
+  background-size:61px 77px,113px 97px;
+  animation:emberRiseV2 .8s linear infinite;
+}
+@keyframes emberRiseV2{from{transform:translateY(12px)}to{transform:translateY(-22px)}}
+.dragon-hit-v2{animation:dragonHitV2 .38s ease-out both!important}
+@keyframes dragonHitV2{
+  0%{filter:brightness(1)}
+  30%{filter:brightness(2.6) saturate(1.7);transform:scale(1.08)}
+  100%{opacity:.05;transform:scale(.5)}
+}
+
+/* Skill row */
+.spell-row{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:7px!important}
+.spell-row .power-btn{min-width:0;padding:9px 3px;font-size:.69rem;line-height:1.12}
+.spell-row .power-btn small{font-size:.49rem}
+@media(max-width:620px){
+  .spell-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .spell-row #skill-meteor{grid-column:1/-1}
+}
+
+/* Energy recovery is never capped at 5 */
+
+/* 🔥 火球術攻擊動畫 */
+.fireball-vfx{position:fixed;inset:0;z-index:2147483646;pointer-events:none;overflow:hidden}
+.fireball-projectile{
+  position:fixed;font-size:68px;line-height:1;
+  filter:drop-shadow(0 0 10px #fff) drop-shadow(0 0 24px #ffd166) drop-shadow(0 0 50px #ff7a18);
+  will-change:left,top,transform,opacity;z-index:30
+}
+.fireball-projectile::after{
+  content:'';position:absolute;left:50%;bottom:60%;width:85px;height:210px;
+  transform:translateX(-50%);
+  background:linear-gradient(to top,rgba(255,209,102,.86),rgba(255,122,24,.48),transparent);
+  filter:blur(8px);border-radius:50%
+}
+.fireball-glow{
+  position:fixed;width:115px;height:115px;transform:translate(-50%,-50%);
+  border-radius:50%;background:radial-gradient(circle,rgba(255,236,179,.5),rgba(255,122,24,.25),transparent 70%);
+  filter:blur(8px);z-index:29;opacity:0
+}
+.fireball-impact-ring{
+  position:fixed;width:32px;height:32px;transform:translate(-50%,-50%) scale(.1);
+  border:5px solid #fff;border-radius:50%;opacity:.95;
+  box-shadow:0 0 18px #fff,0 0 42px #ffd166,0 0 80px #ff7a18;
+  animation:fireballRing .55s cubic-bezier(.1,.7,.1,1) forwards
+}
+@keyframes fireballRing{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(.1)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(8)}
+}
+.fireball-hit{animation:fireballHit .4s ease-out both!important}
+@keyframes fireballHit{
+  0%{transform:scale(1)}
+  30%{transform:scale(1.17);filter:brightness(2.8) saturate(1.5);box-shadow:0 0 30px #ffd166,0 0 50px #ff7a18}
+  100%{transform:scale(.35);opacity:.08;filter:brightness(3)}
+}
+
+/* 🔮 強化魔法飛彈 */
+.missile-vfx{position:fixed;inset:0;z-index:2147483646;pointer-events:none;overflow:hidden}
+.missile-gate{
+  position:fixed;width:78px;height:78px;transform:translate(-50%,-50%);
+  border:2px solid rgba(103,232,249,.9);border-radius:50%;
+  box-shadow:0 0 20px rgba(103,232,249,.7),0 0 50px rgba(139,92,246,.55),inset 0 0 20px rgba(103,232,249,.25);
+  animation:missileGatePulse .6s ease-in-out infinite alternate
+}
+@keyframes missileGatePulse{from{transform:translate(-50%,-50%) scale(.88);opacity:.5}to{transform:translate(-50%,-50%) scale(1.08);opacity:1}}
+.magic-missile-bolt-v2{
+  position:fixed;width:25px;height:78px;border-radius:50%;
+  background:radial-gradient(ellipse at 50% 12%,#fff 0 8%,#dffbff 20%,#67e8f9 48%,#2563eb 74%,#7c3aed 100%);
+  box-shadow:0 0 15px #fff,0 0 30px #67e8f9,0 0 58px #8b5cf6;
+  will-change:left,top,transform
+}
+.magic-missile-bolt-v2::before{
+  content:'';position:absolute;left:50%;bottom:65%;width:55px;height:170px;transform:translateX(-50%);
+  background:linear-gradient(to top,rgba(103,232,249,.7),rgba(139,92,246,.22),transparent);
+  filter:blur(5px);border-radius:50%
+}
+.magic-missile-bolt-v2 span{
+  position:absolute;width:9px;height:9px;border-radius:50%;left:50%;top:15%;transform:translateX(-50%);
+  background:#fff;box-shadow:0 0 12px #fff,0 0 20px #67e8f9
+}
+
+
+/* 🔥 FIREBALL V4 — actual attack animation */
+.fireball-vfx-v4{position:fixed;inset:0;z-index:2147483647;pointer-events:none;overflow:hidden}
+.fb-caster{
+  position:fixed;left:50%;bottom:48px;transform:translateX(-50%);
+  color:#fde68a;font-size:38px;opacity:.9;
+  text-shadow:0 0 15px #fff,0 0 35px #a855f7;
+}
+.fb-projectile{
+  position:fixed;left:50%;top:100%;transform:translate(-50%,-50%) rotate(-15deg) scale(.5);
+  font-size:76px;line-height:1;opacity:1;
+  filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 20px #ffd166) drop-shadow(0 0 44px #ff7a18);
+  will-change:left,top,transform;
+}
+.fb-trail{
+  position:fixed;width:95px;height:250px;transform:translate(-50%,-92%);
+  border-radius:50%;
+  background:linear-gradient(to top,rgba(255,255,255,.55),rgba(255,209,102,.55),rgba(255,122,24,.38),transparent);
+  filter:blur(9px);opacity:.35;
+}
+.fb-impact{
+  position:fixed;width:36px;height:36px;
+  border:5px solid #fff;border-radius:50%;opacity:0;
+  transform:translate(-50%,-50%) scale(.1);
+  box-shadow:0 0 18px #fff,0 0 45px #ffd166,0 0 85px #ff7a18,0 0 120px #a855f7;
+}
+.fb-impact-active{animation:fbImpactV4 .62s cubic-bezier(.08,.72,.1,1) both}
+@keyframes fbImpactV4{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(.1)}
+  18%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(9)}
+}
+.fireball-hit-v4{animation:fbTileV4 .42s ease-out both!important}
+@keyframes fbTileV4{
+  0%{transform:scale(1);filter:brightness(1)}
+  34%{transform:scale(1.16);filter:brightness(2.8) saturate(1.5);box-shadow:0 0 30px #ffd166,0 0 58px #ff7a18}
+  100%{transform:scale(.3);opacity:.05;filter:brightness(3)}
+}
+
+
+/* ═══════════════════════════════════════════════
+   CINEMATIC SKILL POLISH V5
+   ═══════════════════════════════════════════════ */
+.spell-runtime{position:fixed;inset:0;z-index:2147483647;pointer-events:none;overflow:hidden}
+.spell-runtime::after{
+  content:'';position:absolute;inset:0;opacity:0;
+  background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.12),transparent 45%);
+  transition:opacity .12s ease;
+}
+
+/* 🔥 Fireball: portal + projectile + impact */
+.fireball-vfx-v4,.fireball-vfx-v5{position:fixed;inset:0;z-index:2147483647;pointer-events:none;overflow:hidden}
+.fb-caster{filter:drop-shadow(0 0 10px #c084fc) drop-shadow(0 0 22px #fde68a);animation:casterPulseV5 .55s ease-in-out infinite alternate}
+@keyframes casterPulseV5{from{transform:translateX(-50%) scale(.92);opacity:.55}to{transform:translateX(-50%) scale(1.08);opacity:1}}
+.fb-projectile{
+  text-shadow:0 0 8px #fff,0 0 22px #fde68a,0 0 50px #f97316;
+  filter:drop-shadow(0 0 10px #fff) drop-shadow(0 0 28px #ffd166) drop-shadow(0 0 55px #ff7a18);
+}
+.fb-projectile::before{
+  content:'';
+  position:absolute;left:50%;top:50%;width:145%;height:145%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  border:2px solid rgba(253,230,138,.52);
+  box-shadow:0 0 24px rgba(253,230,138,.56),inset 0 0 22px rgba(255,122,24,.28);
+  animation:fbOrbitV5 .5s linear infinite;
+}
+@keyframes fbOrbitV5{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.fireball-impact-ring{
+  width:44px!important;height:44px!important;border-width:5px!important;
+  box-shadow:0 0 16px #fff,0 0 38px #fde68a,0 0 82px #fb923c,0 0 125px rgba(192,132,252,.66)!important;
+}
+.fireball-hit-v4{animation:fbTileV5 .48s cubic-bezier(.16,.78,.16,1) both!important}
+@keyframes fbTileV5{
+  0%{transform:scale(1);filter:brightness(1)}
+  24%{transform:scale(1.12) rotate(-1deg);filter:brightness(2.7);box-shadow:0 0 26px #fde68a,0 0 48px #fb923c}
+  52%{transform:scale(1.04) rotate(1deg)}
+  100%{transform:scale(.25) rotate(0);opacity:.02;filter:brightness(3.2) blur(1px)}
+}
+
+/* 🔮 Magic missile: star gate and richer projectile */
+.missile-gate{
+  background:radial-gradient(circle,rgba(255,255,255,.08),transparent 58%);
+  animation:gatePulseV5 .55s ease-in-out infinite alternate
+}
+@keyframes gatePulseV5{from{transform:translate(-50%,-50%) scale(.88) rotate(0deg)}to{transform:translate(-50%,-50%) scale(1.13) rotate(12deg)}}
+.magic-missile-bolt-v2{
+  border:1px solid rgba(255,255,255,.32);
+  filter:drop-shadow(0 0 6px #fff);
+}
+.magic-missile-bolt-v2::after{
+  content:'✦';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  color:#fff;font-size:10px;text-shadow:0 0 12px #67e8f9;
+}
+.missile-hit-v2{animation:missileHitV5 .34s cubic-bezier(.16,.78,.16,1) both!important}
+@keyframes missileHitV5{
+  0%{transform:scale(1)}
+  28%{transform:scale(1.28);filter:brightness(2.8);box-shadow:0 0 34px #67e8f9,0 0 60px #8b5cf6}
+  100%{transform:scale(.18);opacity:.02;filter:brightness(3)}
+}
+
+/* 🐉 Dragon breath: cone, runic ignition, ember field */
+.dragon-vfx{background:radial-gradient(circle at 50% 80%,rgba(251,146,60,.09),transparent 45%)}
+.dragon-rune{
+  text-shadow:0 0 10px #fde68a,0 0 25px #fb923c,0 0 50px #a855f7!important;
+  animation:dragonRuneGlowV5 .7s ease-in-out infinite alternate;
+}
+@keyframes dragonRuneGlowV5{from{filter:brightness(1);opacity:.55}to{filter:brightness(1.55);opacity:1}}
+.dragon-caster{
+  filter:drop-shadow(0 0 14px #fff) drop-shadow(0 0 34px #fb923c) drop-shadow(0 0 60px #ef4444)!important;
+}
+.dragon-fire-core{
+  background:
+    radial-gradient(ellipse at 50% 10%,rgba(255,255,255,.8),rgba(253,230,138,.72) 17%,rgba(251,146,60,.86) 38%,rgba(239,68,68,.48) 66%,transparent 88%)!important;
+  box-shadow:0 0 35px #fff,0 0 68px #fb923c,0 0 115px #ef4444,0 0 150px rgba(168,85,247,.55)!important;
+}
+.dragon-fire-active{animation:dragonFireV5 .72s cubic-bezier(.18,.76,.14,1) both!important}
+@keyframes dragonFireV5{
+  0%{top:112%;opacity:0;transform:translateX(-50%) scaleX(.3) scaleY(.15)}
+  28%{opacity:1}
+  100%{top:var(--dragon-end,9%);opacity:.98;transform:translateX(-50%) scaleX(1.03) scaleY(1)}
+}
+.dragon-hit-v2{animation:dragonHitV5 .46s cubic-bezier(.16,.78,.16,1) both!important}
+@keyframes dragonHitV5{
+  0%{transform:scale(1);filter:brightness(1)}
+  28%{transform:scale(1.12);filter:brightness(2.8) saturate(1.8);box-shadow:0 0 32px #fde68a,0 0 56px #fb923c}
+  100%{transform:scale(.28) rotate(1deg);opacity:.03;filter:brightness(3)}
+}
+
+/* Unified micro screen flash on hit */
+.skill-flash{
+  position:fixed;inset:0;opacity:0;pointer-events:none;z-index:2147483647;
+  background:radial-gradient(circle at var(--sx) var(--sy),rgba(255,255,255,.32),rgba(253,230,138,.10) 16%,transparent 42%);
+}
+.skill-flash-on{animation:skillFlashV5 .22s ease-out both}
+@keyframes skillFlashV5{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
+
+
+#game-over-modal.active .modal-card{
+  animation:energyRestartPulse .9s ease-in-out both;
+}
+#game-over-modal.active .modal-card::after{
+  content:'⚡ 能量耗盡・即將重新開始';
+  display:block;
+  margin-top:10px;
+  font-size:.68rem;
+  color:#fde68a;
+  letter-spacing:1px;
+  text-shadow:0 0 12px rgba(253,230,138,.55);
+}
+@keyframes energyRestartPulse{
+  0%{transform:scale(.96);opacity:.7}
+  35%{transform:scale(1.02);opacity:1}
+  100%{transform:scale(1);opacity:1}
+}
+
+
+/* Dynamic 5×5 → 8×8 board */
+.game-board{
+  grid-template-columns:repeat(var(--board-size,5),minmax(0,1fr))!important;
+  grid-template-rows:repeat(var(--board-size,5),minmax(0,1fr))!important;
+  width:100%!important;
+  aspect-ratio:1/1!important;
+}
+
+
+/* LV badge visibility */
+.game-board-wrapper{position:relative!important;padding-top:38px!important}
+.level-badge{
+  position:absolute!important;
+  top:7px!important;
+  right:10px!important;
+  z-index:999!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:70px!important;height:28px!important;
+  padding:0 12px!important;
+  border-radius:11px!important;
+  overflow:visible!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+  white-space:nowrap!important;
+}
+@media(max-width:430px){
+  .game-board-wrapper{padding-top:34px!important}
+  .level-badge{top:5px!important;right:8px!important;min-width:62px!important;height:25px!important;font-size:.65rem!important}
 }
 
 </style>
